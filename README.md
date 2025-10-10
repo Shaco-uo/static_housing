@@ -3,7 +3,7 @@
 * Requires this system https://github.com/Shaco-uo/house_system
 * Example of roomdef:
 
-[ROOMDEF a_trinsic_councelors_guild_hall_1]
+[ROOMDEF a_trinsic_councelors_guild_hall_1]  
 EVENTS=r_town_minerals,r_town_water,r_default_tree,r_default_grass  
 NAME=Trinsic Councelor's Guild Hall  
 GROUP=Trinsic Housing  
