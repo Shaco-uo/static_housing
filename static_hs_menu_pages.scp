@@ -597,7 +597,7 @@ else
 	elif <dlocal.count> <= 20
 		local.x=180
 	else
-		local.x=112
+		local.x=111
 	endif
 	dorigin <dlocal.x> 230
 	for 0 <eval <dlocal.count>-1>
@@ -612,13 +612,13 @@ else
 			if (<ref2>==<src.uid>) || (<src.is_static_owner <ref1>>) || (<src.isgm>)
 				if <argv[1]>
 					local.b=1
-					button +109 +5 <def0.dlg_btn_small_close> 1 0 <eval <dlocal._for>+4200> // remove
+					button +106 +2 22150 22152 1 0 <eval <dlocal._for>+4200> // remove
 				endif
 			endif
 		elif ((<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.isgm>)) && ((strmatch(*friends*,<local.list>)) || (strmatch(*access*,<local.list>)) ||(strmatch(*ban*,<local.list>)))
 			if <argv[1]>
 				local.b=1
-				button +109 +5 <def0.dlg_btn_small_close> 1 0 <eval <dlocal._for>+4200> // remove
+				button +106 +2 22150 22152 1 0 <eval <dlocal._for>+4200> // remove
 			endif
 		endif
 		dhtmlgump - +1 <qval <local.b>?114:124> 20 0 0 <def.center><def.bfont_size1><ref2.f_hs_noto_bfontcolor><ref2.name>
