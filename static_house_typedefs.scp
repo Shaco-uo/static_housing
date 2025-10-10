@@ -1,8 +1,31 @@
 [TYPEDEF t_static_house_sign]
-On=@static_sign_init
-	local.name=<room.name>
-	local.value=<room.dtag0.value>
-	serv.log <local.name> <dlocal.value>
+On=@ClientTooltip
+	if <room>
+		local.f_tooltip=<def.bfont_hs_title><room.name><def.bfont_white>
+		if !<isempty <tag.forsale_new>>
+			local.f_tooltip .= <def.br>FOR SALE<def.br><def.bfont_lyellow><f_numformat <room.dtag0.value>><def.bfont_white>gp
+		else
+			ref1=<serv.list.static_hs_<uid>.0>
+			if <ref1.isvalid> && <ref1.isplayer>
+				local.f_tooltip .= <def.br>Owner <def.bfont_lyellow><uid.<serv.list.static_hs_<uid>.0>.name><def.bfont_white> // owner
+			endif
+			if (<serv.list.static_hs_<uid>.2> == <def.house_guild>)
+				if !<isempty <tag.is_guild>>
+					ref5=<tag0.is_guild>
+					if <ref5.isvalid>
+						local.abbrev=<qval <isempty <ref5.abbrev>>?<ref5.name>:<ref5.abbrev>>
+					endif
+				endif
+				local.f_tooltip .= <def.br>[<def.bfont_lyellow><local.abbrev><def.bfont_white>] Guild House
+			endif
+			if !<isempty <tag.forsale>>
+				local.f_tooltip .= <def.br>FOR SALE<def.br><def.bfont_lyellow><f_numformat <dtag0.price>><def.bfont_white>gp
+			endif
+			local.f_tooltip .= <def.br><QVAL (<serv.list.static_hs_<uid>.2>==<def.house_private>)?Private Home:Open to the Public>
+		endif
+		ADDCLILOC <ddef0.empty_cliloc>,<local.f_tooltip>
+		return 1
+	endif
 
 On=@DClick
 	if !(<room>)
@@ -50,7 +73,7 @@ DESCRIPTION=Static House
 On=@Create
 	tag.forsale_new=1
 	attr=010
-	timerf 1,trigger @static_sign_init
+	// timerf 1,trigger @static_sign_init
 
 [ITEMDEF i_sign_static_house2]
 DEFNAME=i_sign_static_house2
@@ -66,7 +89,6 @@ DESCRIPTION=Static House
 On=@Create
 	tag.forsale_new=1
 	attr=010
-	timerf 1,trigger @static_sign_init
 
 // Telepad for multis.
 [TYPEDEF ei_static_telepad]
