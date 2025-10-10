@@ -621,7 +621,7 @@ else
 				button +109 +5 <def0.dlg_btn_small_close> 1 0 <eval <dlocal._for>+4200> // remove
 			endif
 		endif
-		dhtmlgump - +1 <qval <local.b>?114:124> 20 0 0 <def.center><def.bfont_size1><ref2.f_dlg_noto_bfontcolor><ref2.name>
+		dhtmlgump - +1 <qval <local.b>?114:124> 20 0 0 <def.center><def.bfont_size1><ref2.f_hs_noto_bfontcolor><ref2.name>
 		if <dlocal.c>==10
 			local.c=
 			local.x += 126

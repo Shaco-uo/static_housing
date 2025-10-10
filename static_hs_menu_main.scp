@@ -128,7 +128,7 @@ on=1 // buy property
 	elif <src.gold> < <dlocal.gold>
 		src.sysmessage @,,1 You don't have enough gold to buy this property.
 	elif <src.static_house_total> > <ddef0.hs_static_amount_max>
-		src.sysmessage 33,,1 You cannot have more properties (Nax <ddef0.hs_static_amount_max>).
+		src.sysmessage @33,,1 You cannot have more properties (Nax <ddef0.hs_static_amount_max>).
 	else
 		src.gold -= <dlocal.gold>
 		ref2.gold += <dlocal.gold>
@@ -157,7 +157,7 @@ on=1 // buy property
 		src.events=+e_static_house_events
 		src.dspeech=+spk_static_cmds
 		ref1.f_static_recode_doors
-		src.sysmessage @76,,1 You are the new owner of <ref1.name>, bought to <ref2.name> for <f_numformat <dlocal.gold>> gp.
+		src.sysmessage @76,,1 You are the new owner of <ref1.name>, bought from <ref2.name> for <f_numformat <dlocal.gold>> gp.
 		src.ctag.hs_menu=
 	endif
 	sdialog d_static_house_menu

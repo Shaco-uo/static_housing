@@ -1,14 +1,3 @@
-[FUNCTION fff]
-targetf fct
-
-[FUNCTION fct]
-ref1=<room.tag0.sign>
-serv.log <serv.list.static_hs_<ref1>_ban.0> <uid.<serv.list.static_hs_<ref1>_ban.0>.name>
-serv.list.static_hs_<ref1>_ban.add <argo>
-serv.log <serv.list.static_hs_<ref1>_ban.0> <uid.<serv.list.static_hs_<ref1>_ban.0>.name>
-
-
-
 [FUNCTION static_house_total]
 local.hs=<serv.list.chardata_<uid>.11>
 if <isempty <local.hs>>
@@ -581,7 +570,9 @@ elif <argo.f_isContainer>
 	src.sysmessage @,,1 You cannot lockdown containers, use secure instead.
 elif <argo.isevent.ei_static_lockdown> || <argo.attr>&attr_move_never
 	argo.message @,,1 This is already locked down!
-elif <argo.isevent.t_house_addon> || <argo.istevent.t_remove_timer> || <argo.isevent.t_remove_timer> || <argo.tag0.enchant_timer> || <argo.isevent.ei_static_door> || <argo.type>==t_ethereal_mount // || <argo.istevent.t_plant_potted>
+// elif <argo.isevent.t_house_addon> || <argo.istevent.t_remove_timer> || <argo.isevent.t_remove_timer> || <argo.tag0.enchant_timer> || <argo.type>==t_ethereal_mount // || <argo.istevent.t_plant_potted>  // custom
+// 	src.sysmessage @33,,1 Invalid Target.
+elif <argo.isevent.ei_static_door>
 	src.sysmessage @33,,1 Invalid Target.
 elif !((<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.f_static_isfriend <ref1>>) || (<src.isgm>)) // Double check to prevent players to get the target on their house and use it on another.
 else
@@ -626,8 +617,10 @@ elif (<argo.room.defname>!=<ref1.room.defname>)
 	src.sysmessage @33,,1 <argo.name> is not in the property.
 elif (<argo.isevent.ei_static_secure>)
 	argo.message @,,1 This is already secured!
-elif (<argo.isevent.ei_static_door>) || (<argo.isevent.t_house_addon>)
+elif (<argo.isevent.ei_static_door>)
 	src.sysmessage @33,,1 Invalid Target.
+// elif (<argo.isevent.t_house_addon>) // custom
+// 	src.sysmessage @33,,1 Invalid Target.
 elif !(<argo.f_isContainer>)
 	argo.message @,,2 501712		// This isn't a container!
 elif !((<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.isgm>)) // Double check to prevent players to get the target on their house and use it on another.
@@ -777,6 +770,29 @@ else
 		argo.p=<local.place>
 		src.sysmessage @33,,1 You cannot move items outside the house site.
 	endif
+endif
+
+
+[FUNCTION f_hs_noto_bfontcolor] 	// returns characters notoriety color formated for gumps
+ref1=<args>
+if (<flags>&statf_invul) && (<isgm>)
+	return <def.bfont_purple>	// purple
+elseif (<notogetflag <ref1>>==7)		
+	return <def.bfont_purple>	// purple
+elseif (<notogetflag <ref1>>==6)
+	return <def.bfont_red>	// red
+elseif (<notogetflag <ref1>>==5)
+	return <def.bfont_orange>
+elseif (<notogetflag <ref1>>==4)
+	return <def.bfont_gray>	// gray
+elseif (<notogetflag <ref1>>==3)
+	return <def.bfont_gray>	// gray
+elseif (<notogetflag <ref1>>==2)
+	return <def.bfont_green>	// green
+elseif (<notogetflag <ref1>>==1)
+	return <def.bfont_blue>	// blue
+else
+	return <def.bfont_gray>	// gray
 endif
 
 [EOF]
