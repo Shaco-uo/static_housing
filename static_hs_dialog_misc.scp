@@ -21,6 +21,10 @@ static_hs_speech_command_16		Move NW,Moves targeted item north-west,"f_static_mo
 
 [DIALOG d_static_hs_commands]
 100,100
+ref1=<src.room.tag0.sign>
+if (<src.is_static_owner <ref1>> || <src.f_static_iscoowner <ref1>> || <src.f_static_isfriend <ref1>> || <src.isgm>)
+	local.buttons=1
+endif
 if <src.dctag0.menu_page>==1
 	local.loop=1 <qval <def.hs_can_bank>?8:7>
 else
@@ -37,13 +41,29 @@ button - -2 <qval <isempty <src.ctag.menu_page>>?9904 9903:9910 9909> 1 0 100 //
 dorigin 150 154
 dhtmlgump - - 120 20 0 0 <def.bfont_hs_yellow>COMMAND
 dhtmlgump *120 - 274 20 0 0 <def.bfont_hs_yellow>DESCRIPTION
+
 dorigin 114 156
 for <local.loop>
 	args=<def0.static_hs_speech_command_<dlocal._for>>
-	button - *21 4005 4007 1 0 <dlocal._for>
-	dhtmlgump +37 - 120 20 0 0 <def.bfont_hs_text1><argv[0]>
+	dhtmlgump +37 *21 120 20 0 0 <def.bfont_hs_text1><argv[0]>
 	dhtmlgump +157 - 274 20 0 0 <def.bfont_hs_text3><argv[1]>.
+	if (<local.buttons>)
+		if <dlocal._for>==3 // secure
+			if (<src.is_static_owner <ref1>> || <src.f_static_iscoowner <ref1>> || <src.isgm>)
+				button - - 4005 4007 1 0 <dlocal._for>
+			else
+				gumppic - - 4020 0
+				tooltip <ddef0.empty_cliloc>,@Access level required
+			endif
+		else
+			button - - 4005 4007 1 0 <dlocal._for>
+		endif
+	else
+		gumppic - - 4020 0
+		tooltip <ddef0.empty_cliloc>,@Access level required
+	endif
 endfor
+
 
 [DIALOG d_static_hs_commands prebutton]
 ref1=<src.room.tag0.sign>

@@ -24,8 +24,11 @@ On=@ClientTooltip
 			local.f_tooltip .= <def.br><QVAL (<serv.list.static_hs_<uid>.2>==<def.house_private>)?Private Home:Open to the Public>
 		endif
 		ADDCLILOC <ddef0.empty_cliloc>,<local.f_tooltip>
-		return 1
+	else
+		ADDCLILOC <ddef0.empty_cliloc>,<name>
 	endif
+	return 1
+	
 
 On=@DClick
 	if !(<room>)
