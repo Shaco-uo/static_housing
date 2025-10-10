@@ -204,7 +204,7 @@ dhtmlgump +230 - 140 20 0 0 <def.bfont_hs_text1><dlocal.vendors> / <dlocal.maxve
 
 
 PAGE 2 // BUY STORAGE
-button 118 224 <def0.dlg_btn_arrow_left> 0 1 0
+button 118 224 9910 9909 0 1 0
 dhtmlgump 118 225 364 20 0 0 <def.bfont_hs_title><def.bfont_size7><def.center>Increase Storage
 dhtmlgump 138 258 320 100 0 0 <def.bfont_hs_text3>You may buy up to a 100% increase in storage space. The value listed for this property will be adjusted to reflect your investment.  The price for a 100% upgrade should not cost more than 50% of the property price, however you buy it.<def.bfonte>
 dhtmlgump 138 354 320 40 0 0 <def.bfont_hs_text3>The value of purchased storage will be refunded to your bankbox upon redeeding.<def.bfonte>
@@ -327,7 +327,7 @@ endif
 
 [FUNCTION fd_static_house_menu_20] // CHANGE SIGN DISPID
 dhtmlgump 118 225 350 20 0 0 <def.bfont_hs_title><def.bfont_size7><def.center>Change Sign
-button 118 224 <def0.dlg_btn_arrow_left> 1 0 20004 // back/customize
+button 118 224 9910 9909 1 0 20004 // back/customize
 if <ref1.baseid>==i_sign_static_house
 	local.sign=2979
 else
@@ -351,7 +351,7 @@ dorigin 118 225
 dhtmlgump - - 350 20 0 0 <def.bfont_hs_title><def.bfont_size7><def.center>Sign Color
 dhtmlgump *320 - 100 20 0 0 <def.bfont_hs_text1>Reset
 button -34 - 4017 4019 1 0 7004
-button 118 224 <def0.dlg_btn_arrow_left> 1 0 20004 // back/customize
+button 118 224 9910 9909 1 0 20004 // back/customize
 
 local.x=136
 dorigin <dlocal.x> 260
@@ -367,7 +367,7 @@ endfor
 
 [FUNCTION fd_static_house_menu_22] // SIGN HANGER
 dhtmlgump 118 225 350 20 0 0 <def.bfont_hs_title><def.bfont_size7><def.center>Sign Hanger
-button 118 224 <def0.dlg_btn_arrow_left> 1 0 20004 // back/customize
+button 118 224 9910 9909 1 0 20004 // back/customize
 local.number <ref1.dispid>
 
 if <ref1.baseid>==i_sign_static_house
@@ -402,7 +402,7 @@ button -34 - 4005 4007 1 0 4400 // clear list
 [FUNCTION fd_static_house_menu_30] // PROPERTY TAX
 local.h=<ref3.static_house_total>
 dhtmlgump 118 225 350 20 0 0 <def.bfont_hs_title><def.bfont_size7><def.center>Property Tax
-button 118 224 <def0.dlg_btn_arrow_left> 1 0 20005 // OWNERSHIP
+button 118 224 9910 9909 1 0 20005 // OWNERSHIP
 if (<src.isgm>)
 	dhtmlgump 118 340 360 20 0 0 <def.bfont_hs_title><def.bfont_size7><def.center>Staff Override
 	dhtmlgump 144 440 360 20 0 0 <def.bfont_hs_text3>Reset decay timer to <def.bfont_hs_text2><ddef.hs_can_decay><def.bfont_hs_text3> days
@@ -484,7 +484,7 @@ endif
 
 [FUNCTION fd_static_house_menu_31] // PROPERTY SELL
 dhtmlgump 118 225 350 20 0 0 <def.bfont_hs_title><def.bfont_size7><def.center>Property Sell
-button 118 224 <def0.dlg_btn_arrow_left> 1 0 20005 // OWNERSHIP
+button 118 224 9910 9909 1 0 20005 // OWNERSHIP
 if !<ref1.tag0.forsale>
 	gumppic 224 269 2501
 	local.price=<eval <ref1.room.dtag0.value>+<ref1.dtag0.boughtstorage>>
@@ -501,7 +501,7 @@ button 172 460 4023 4025 1 0 6003 // put for sale
 
 [FUNCTION fd_static_house_menu_32] // PROPERTY REMOVAL
 dhtmlgump 118 225 350 20 0 0 <def.bfont_hs_title><def.bfont_size7><def.center>Property Removal
-button 118 224 <def0.dlg_btn_arrow_left> 1 0 20005 // OWNERSHIP/back
+button 118 224 9910 9909 1 0 20005 // OWNERSHIP/back
 
 dorigin 260 336
 button - - <def0.dlg_btn2_60x25> 1 0 6005
@@ -581,7 +581,7 @@ if <dlocal.count> < 1
 	local.count=0
 endif
 dhtmlgump 118 225 350 20 0 0 <def.bfont_hs_title><def.bfont_size7><def.center><local.list> List <dlocal.count>/<def0.hs_max_co_owners>
-button 118 224 <def0.dlg_btn_arrow_left> 1 0 20002 // back/security
+button 118 224 9910 9909 1 0 20002 // back/security
 if !<local.count>
 	dhtmlgump 188 250 220 20 0 0 <def.bfont_hs_red><def.bfont_size7><def.center>Empty
 else
