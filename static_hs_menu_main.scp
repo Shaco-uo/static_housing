@@ -1,0 +1,695 @@
+[DIALOG d_static_house_menu]
+100,100
+page 0
+ref1=<src.ctag0.hs_sign> //sign
+// ref2=<room.uid> //room
+ref3=<serv.list.static_hs_<ref1>.0> // owner
+local.housetype=<serv.list.static_hs_<ref1>.2>
+
+if (<src.is_static_owner <ref1>>) || (<src.isgm>)
+	local.owner=1
+elif (<src.f_static_iscoowner <ref1>>)
+	local.coowner=1
+elif (<src.f_static_isfriend <ref1>>)
+	local.friend=1
+endif
+if (<local.housetype>==<def.house_guild>)
+	ref5=<ref2.tag0.is_guild>
+	if <ref5.isvalid>
+		local.guild_name=<qval <ref5.abbrev>?<def.bfont_size1><ref5.name>:[<ref5.abbrev>]>
+		local.guild=1
+	endif
+endif
+
+
+fd_static_hs_bg 100,100
+button 120 120 36 36 1 0 20006 // update dialog debug
+dhtmlgump 125 134 106 60 0 0 <def.center><def.h3><def.bfont_size7><ref1.name><def.h3e><def.br><def.bfont_size1><region.name>
+if (<local.guild>)
+	dhtmlgump 125 118 106 20 0 0 <def.center><local.guild_name>
+endif
+
+dorigin 100 89 // header buttons
+for 1 5
+	local.opt=0
+	if <dlocal._for>==2  // SECURITY
+		if <src.dctag0.hs_menu>==<dlocal._for>
+			local.opt=1
+		elif <src.dctag0.hs_menu>==7 // coowner list
+			local.opt=1
+		elif <src.dctag0.hs_menu>==17 // remove coowner
+			local.opt=1
+		elif <src.dctag0.hs_menu>==27 // Clear list confirm
+			local.opt=1
+		endif
+	elif <dlocal._for>==4  // CUSTOMIZE
+		if <src.dctag0.hs_menu>==<dlocal._for>
+			local.opt=1
+		elif <src.dctag0.hs_menu>==20 // Change House Sign
+			local.opt=1
+		elif <src.dctag0.hs_menu>==21 // Change House Sign Color
+			local.opt=1
+		elif <src.dctag0.hs_menu>==22 // Change House Sign Hanger
+			local.opt=1
+		endif
+	elif <dlocal._for>==5 // OWNERSHIP
+		if <src.dctag0.hs_menu>==<dlocal._for>
+			local.opt=1
+		elif <src.dctag0.hs_menu>==30 // property tax
+			local.opt=1
+		endif
+	elif <src.dctag0.hs_menu>==<dlocal._for>
+		local.opt=1
+	endif
+	if <local.opt>
+		dhtmlgump 282 *20 120 20 0 0 <def.bfont_hs_yellow><def0.hs_menu_title_<dlocal._for>>
+		button 250 - 4006 4007 1 0 <eval <dlocal._for>+20000>
+	else
+		dhtmlgump 282 *20 120 20 0 0 <def.bfont_hs_text1><def0.hs_menu_title_<dlocal._for>>
+		button 250 - 4005 4007 1 0 <eval <dlocal._for>+20000>
+	endif
+endfor
+
+dorigin 107 508 // bottom buttons
+if (<local.owner>) || (<local.coowner>) || (<local.friend>)
+	button - - 4005 4007 1 0 <QVAL (<local.housetype>==<def.house_private>)? 4023:4032>
+	dhtmlgump +32 - 150 20 0 0 <def.bfont_hs_text1><QVAL (<local.housetype>==<def.house_private>)?Grant Access:Banish>
+	button - *20 4005 4007 1 0 <QVAL (<local.housetype>==<def.house_private>)? 4021:4031>
+	dhtmlgump +32 - 150 20 0 0 <def.bfont_hs_text1><QVAL (<local.housetype>==<def.house_private>)?Revoke Access:Lift a Ban>
+	button *353 - 4005 4007 1 0 4103
+	dhtmlgump -82 - 100 20 0 0 <def.bfont_hs_text1>Eject Person
+endif
+
+page 1
+if <isempty <src.ctag.hs_menu>>
+	src.ctag.hs_menu=1
+	call fd_static_house_menu_1
+elif <src.dctag0.hs_menu>==6
+	call f_static_render_list Access,1
+elif <src.dctag0.hs_menu>==7
+	call f_static_render_list Coowners
+elif <src.dctag0.hs_menu>==8
+	call f_static_render_list Friends
+elif <src.dctag0.hs_menu>==9
+	call f_static_render_list Ban,1
+elif <src.dctag0.hs_menu>==17
+	call f_static_render_list Coowners,1
+elif <src.dctag0.hs_menu>==18
+	call f_static_render_list Friends,1
+else
+	call fd_static_house_menu_<src.dctag0.hs_menu>
+endif
+
+
+
+[DIALOG d_static_house_menu prebutton]
+src.dialogclose d_static_house_menu
+serv.log @2,0,0 Pressed <dargn1>
+ref1=<src.ctag0.hs_sign> // sign
+if !(<ref1.isvalid>)
+	return 1
+elif (<src.room.defname>!=<ref1.room.defname>)
+	if <ref1.distance <src>> > 3
+		src.sysmessage @,,1 You can't reach the sign.
+		return 1
+	endif
+endif
+
+[DIALOG d_static_house_menu button]
+ON=0
+	return 1
+
+on=1 // buy property
+	ref1=<src.ctag0.hs_sign> // sign
+	local.gold=<ref1.dtag0.price>
+	ref2 = <serv.list.static_hs_<ref1>.0> // owner
+	if <src.is_static_owner <ref1>>
+		src.sysmessage @,,1 You cannot buy your own property.
+	elif <src.gold> < <dlocal.gold>
+		src.sysmessage @,,1 You don't have enough gold to buy this property.
+	elif <src.static_house_total> > <ddef0.hs_static_amount_max>
+		src.sysmessage 33,,1 You cannot have more properties (Nax <ddef0.hs_static_amount_max>).
+	else
+		src.gold -= <dlocal.gold>
+		ref2.gold += <dlocal.gold>
+		if <ref2.isonline>
+			ref2.trysrc <ref2> sysmessage @76,,1 Your property <ref1.name> has been sold to <src.name> for <f_numformat <dlocal.gold>>.
+		endif
+		ref1.f_static_reset_sign
+		src.f_addlist_static_house <ref1> // list stuff
+		ref1.name=<ref1.room.name>
+		ref1.tag.forsale=
+		ref1.tag.price=
+		ref1.tag.buildon=<serv.rtime>
+		ref1.room.events=+r_static_house_system
+		ref1.room.flags=region_flag_nodecay|region_flag_nobuilding|region_antimagic_recall_in|region_flag_insta_logout
+		if (<def.hs_can_decay>)
+			if (<ref1.tag0.decay_exempt>)
+				ref1.tag.decay_exempt=
+				ref1.attr = 02|010
+				ref1.timer = 60*60*24*<ddef0.hs_can_decay>
+			endif
+		else
+			ref1.attr = 010
+			ref1.timer = -1
+		endif
+		ref1.resendtooltip 1,0
+		src.events=+e_static_house_events
+		src.dspeech=+spk_static_cmds
+		ref1.f_static_recode_doors
+		src.sysmessage @76,,1 You are the new owner of <ref1.name>, bought to <ref2.name> for <f_numformat <dlocal.gold>> gp.
+		src.ctag.hs_menu=
+	endif
+	sdialog d_static_house_menu
+
+
+// **********************************
+// **********************************
+// **********************************
+// SECURITY
+
+ON=4100 // PRIVATE/PUBLIC TOGGLE
+	ref1=<src.ctag0.hs_sign> // sign
+	local.housetype=<serv.list.static_hs_<ref1>.2>
+	if <ref1.region.defname>==a_custom_market
+		if (<local.housetype>!=<def.house_public>)
+			serv.list.static_hs_<ref1>.2 = <def.house_public>
+			ref1.room.flags &=~ region_flag_nodecay	// item decay
+			ref1.resendtooltip 1,0
+		endif
+		src.sysmessage @,,1 This property cannot have private access (Store).
+	elif (<local.housetype>==<def.house_private>)
+		serv.list.static_hs_<ref1>.2 = <def.house_public>
+		ref1.room.flags &=~ region_flag_nodecay	// item decay
+		ref1.resendtooltip 1,0
+		if <def.hs_wipe_switch_lists>
+			serv.list.static_hs_<ref1>_access.clear
+			src.sysmessage @42,,1 Access list cleared.
+		endif
+		src.sysmessage @42,,1 This property is now open to the public (shop setting), items dropped will decay. Only those on the banned list may not enter.
+		if ((<def0.hs_door_acces_key>) && (<serv.AutoHouseKeys>)) // If keys are used, let the server check them.
+			src.sysmessage @42,,1 Don't forget to set security level and lock the doors if areas are/need to be restricted.
+		else
+			src.sysmessage @42,,1 Don't forget to set security level if areas are/need to be restricted.
+		endif
+	else
+		serv.list.static_hs_<ref1>.2 = <def.house_private>
+		ref1.room.flags |= region_flag_nodecay	// item decay
+		ref1.resendtooltip 1,0
+		if <def.hs_wipe_switch_lists>
+			serv.list.static_hs_<ref1>_ban.clear
+		endif
+		src.sysmessage @42,,1 This propery is now private & may only be accessed by co-owners/friends & those on the access list
+		ref1.f_static_recode_doors
+	endif
+	sdialog d_static_house_menu
+
+ON=4101 // GUILD HOUSE TOGGLE
+	ref1=<src.ctag0.hs_sign> // sign
+	local.housetype=<serv.list.static_hs_<ref1>.2>
+	if <ref1.region.defname>==a_custom_market
+		if (<local.housetype>!=<def.house_public>)
+			serv.list.static_hs_<ref1>.2 = <def.house_public>
+			ref1.room.flags &=~ region_flag_nodecay	// item decay
+			ref1.resendtooltip 1,0
+		endif
+		src.sysmessage @,,1 This property cannot convert into a guildhouse (Store).
+	elif (<local.housetype>==<def.house_guild>)
+		src.sysmessage @,,1 This property is no longer a guildhouse.
+		serv.list.static_hs_<ref1>.2 = <def.house_private>
+		ref1.tag.is_guild=
+		ref1.resendtooltip 1,0
+	else
+		src.message @,,1 Target your guildstone
+		src.targetf f_static_declare_guild <ref1>
+	endif
+	sdialog d_static_house_menu
+
+ON=4102 // RECODE DOORS
+	src.message @,,1 Target a secured item
+	src.targetf fd_static_secure
+
+ON=4103 // EJECT PLAYER
+	src.message @42,,1 Target player to eject
+	src.targetf f_static_eject
+
+// *****************************
+// Lists
+
+ON=4001 4004 // COOWNER LIST
+	ref1=<src.ctag0.hs_sign> // sign
+	local.count=<serv.list.static_hs_<ref1>_coowners.count>
+	if (<dargn1>==4002) // add coowner
+		src.message @,,1 Select Player to add as coowner
+		src.targetf f_static_add_list 1
+	elif <dlocal.count> < 1
+		src.sysmessage @,,1 The coowners list is empty.
+		sdialog d_static_house_menu
+	else
+		src.ctag.list=Coowners
+		if (<dargn1>==4001) // view coowner list
+			src.ctag.hs_menu=7
+		elif (<dargn1>==4003) // remove coowner
+			src.ctag.hs_menu=17
+		elif (<dargn1>==4004) // clear coowner
+			src.ctag.hs_menu=27
+		endif
+		sdialog d_static_house_menu
+	endif
+
+ON=4011 4014 // FRIENDS LIST
+	ref1=<src.ctag0.hs_sign>
+	local.count=<serv.list.static_hs_<ref1>_friends.count>
+	if (<dargn1>==4012) // add friend target
+		src.message @,,1 Select Player to add as friend
+		src.targetf f_static_add_list 2
+	elif <dlocal.count> < 1
+		src.sysmessage @,,1 The friends list is empty.
+		sdialog d_static_house_menu
+	else
+		src.ctag.list=Friends
+		if (<dargn1>==4011) // view friends list
+			src.ctag.hs_menu=8
+		elif (<dargn1>==4013) // remove friend
+			src.ctag.hs_menu=18
+		elif (<dargn1>==4014) // clear friends
+			src.ctag.hs_menu=27
+		endif
+		sdialog d_static_house_menu
+	endif
+
+ON=4021 4023 // ACCESS LIST
+	ref1=<src.ctag0.hs_sign>
+	local.count=<serv.list.static_hs_<ref1>_access.count>
+	if (<dargn1>==4023) // grant access target
+		src.message @,,1 Select Player to grant access
+		src.targetf f_static_add_list 4
+	elif <dlocal.count> < 1
+		src.sysmessage @,,1 The access list is empty.
+		sdialog d_static_house_menu
+	else
+		src.ctag.list=Access
+		if (<dargn1>==4021) // view access list
+			src.ctag.hs_menu=6
+		elif (<dargn1>==4022) // clear access
+			src.ctag.hs_menu=27
+		endif
+		sdialog d_static_house_menu
+	endif
+
+ON=4031 4033 // BAN LIST
+	ref1=<src.ctag0.hs_sign>
+	local.count=<serv.list.static_hs_<ref1>_ban.count>
+	if (<dargn1>==4032) // add to ban target
+		src.message @42,,1 Select Player to banish
+		src.targetf f_static_add_list 3
+	elif <dlocal.count> < 1
+		src.sysmessage @,,1 The ban list is empty.
+		sdialog d_static_house_menu
+	else
+		src.ctag.list=Ban
+		if (<dargn1>==4031) // view ban list
+			src.ctag.hs_menu=9
+		elif (<dargn1>==4033) // clear bans
+			src.ctag.hs_menu=27
+		endif
+		sdialog d_static_house_menu
+	endif
+
+
+ON=4200 4399 // REMOVE FROM LIST
+	ref1=<src.ctag0.hs_sign> //sign
+	local.housetype=<serv.list.static_hs_<ref1>.2>
+	local.list=<src.ctag0.list>
+	local.opt=<eval <argn1>-4200>
+	if <serv.list.static_hs_<ref1>_<local.list>.0> != -1
+		if (<serv.list.static_hs_<ref1>_<local.list>.<dlocal.opt>> == <src>)
+			ref2=<src>
+			src.sysmessage @,,1 You have removed yourself from the <local.list> list.
+		else
+			ref2=<serv.list.static_hs_<ref1>_<local.list>.<dlocal.opt>>
+			src.sysmessage @,,1 <ref2.name> has been removed from the <local.list> list.
+		endif
+		if (<local.housetype>==<def.house_private>) && (<ref2.room> && <ref2.room.defname>==<ref1.room.defname>)
+			ref2.go <ref1.p>
+			ref2.sysmessage @33,,1 This is private property, you no longer have permission to enter.
+		endif
+		if <eval <serv.list.static_hs_<ref1>_<local.list>.count>>==1
+			serv.list.static_hs_<ref1>_<local.list>.clear
+			src.ctag.hs_menu=2
+		else
+			serv.list.static_hs_<ref1>_<local.list>.<dlocal.opt>.remove
+		endif
+	endif
+	sdialog d_static_house_menu
+
+ON=4400 // LIST CLEAR
+	ref1=<src.ctag0.hs_sign> // sign
+	ref2=<ref1.room.uid> // house
+	local.list=<src.ctag0.list>
+	serv.list.static_hs_<ref1>_<local.list>.clear
+	src.sysmessage @42,,1 The <local.list> list has been cleared.
+	src.ctag.hs_menu=2
+	sdialog d_static_house_menu
+
+// **********************************
+// **********************************
+// **********************************
+// STORAGE
+
+ON=8001 8004
+	ref1=<src.ctag0.hs_sign> // sign
+	if (<dargn1>==8001) // buy 25% storage
+		local.value = <eval <ref1.room.dtag0.value>/8>
+		f_static_hs_buy_storage <dlocal.value>
+	elif (<dargn1>==8002) // buy 50% storage
+		local.value = <eval <ref1.room.dtag0.value>/4>
+		f_static_hs_buy_storage <dlocal.value>
+	elif (<dargn1>==8003) // buy 75% storage
+		local.value = <eval (<ref1.room.dtag0.value>/8)*3>
+		f_static_hs_buy_storage <dlocal.value>
+	elif (<dargn1>==8004) // buy 100% storage
+		local.value = <eval <ref1.room.dtag0.value>/2>
+		f_static_hs_buy_storage <dlocal.value>
+	endif
+	sdialog d_static_house_menu
+
+// **********************************
+// **********************************
+// **********************************
+// CUSTOMIZE
+
+ON=7001 7003
+	if (<dargn1>==7001) // Change House Sign
+		src.ctag.hs_menu=20
+		sdialog d_static_house_menu
+	elif (<dargn1>==7002) // Change House Sign Color
+		src.ctag.hs_menu=21
+		sdialog d_static_house_menu
+	elif (<dargn1>==7003) // Change House Sign Hanger
+		src.ctag.hs_menu=22
+		sdialog d_static_house_menu
+	endif
+
+ON=7004
+	ref1=<src.ctag0.hs_sign> // sign
+	ref1.color=0
+	src.sysmessage @,,1 The sign color has been reset.
+	sdialog d_static_house_menu
+
+ON=7005 // toggle rename
+	src.ctag.hs_rename=1
+	sdialog d_static_house_menu
+
+ON=7006 // rename property
+	ref1=<src.ctag0.hs_sign>
+	if (<isempty <argtxt[1]>>)
+		src.sysmessage @33,,1 The name was empty.
+	elif (<isnum <argtxt[1]>>)
+		src.sysmessage @33,,1 That name is invalid (number).
+	elif <eval strlen(<argtxt[1]>)> < 2
+		src.sysmessage @33,,1 That name is too short (min 2).
+	elif <eval strlen(<argtxt[1]>)> > <ddef0.hs_name_lenght_max>
+		src.sysmessage @33,,1 That name is too long, <ddef0.hs_name_lenght_max> chars max (<eval strlen(<args>)>).
+	elif !(strcmpi(<argtxt[1]>,<ref2.name>))
+		src.sysmessage @,,1 Same name.
+	else
+		local.name=<argtxt[1]>
+		src.sysmessage @1151,,1 New name has been set.
+		ref1.name=<local.name>
+		ref1.room.name=<local.name>
+		ref1.resendtooltip 1,0
+	endif
+	sdialog d_static_house_menu
+
+ON=7100 7200 // sign coloring
+	ref1=<src.ctag0.hs_sign> // sign
+	if <def.hs_allow_sign_color>
+		ref1.color=<def0.sign_color_<eval <argn1>-7100>>
+		src.sysmessage @,,1 The sign color has been updated.
+	endif
+	sdialog d_static_house_menu
+
+ON=2965 3140	// sign dispid
+	ref1=<src.ctag0.hs_sign> // sign
+	ref1.dispid=<hval <argn1>>
+	ref1.update
+	src.sysmessage @,,1 The sign has been updated.
+	sdialog d_static_house_menu
+
+ON=12967 12978 // sign hanger
+	ref1=<src.ctag0.hs_sign> // sign
+	if !(<isempty <ref1.tag.sign_hanger>>)
+		ref2=<ref1.tag0.sign_hanger> 	// sign hanger
+		ref2.dispid=<hval <argn>-10000>
+		ref2.update
+		src.sysmessage @,,1 The sign hanger has been updated.
+		sdialog d_static_house_menu
+	endif
+
+// **********************************
+// **********************************
+// **********************************
+// OWNERSHIP
+
+on=6001 // Pay Property Tax menu
+	src.ctag.hs_menu=30
+	sdialog d_static_house_menu
+
+on=6002 // sell Property menu
+	src.ctag.hs_menu=31
+	sdialog d_static_house_menu
+
+on=6003 // sell Property
+	ref1=<src.ctag0.hs_sign> // sign
+	local.lockdowns=<serv.list.static_hs_<ref1>.3>
+	local.secured=<serv.list.static_hs_<ref1>.4>
+	local.increasedstorage = <serv.list.static_hs_<ref1>.5>
+	local.current_storage = <eval <dlocal.lockdowns>+<dlocal.secured>+<dlocal.increasedstorage>>
+	if (<ref1.tag0.demolition>)
+		src.sysmessage @33,,1 This house is scheduled for demolition and cannot be sold.
+	elif (<ref1.tag0.forsale>)
+		ref1.tag.forsale=
+		ref1.tag.price=
+		ref1.f_static_recode_doors
+		src.sysmessage @,,1 You have taken this house off the market.
+		src.sysmessage @,,1 Don't forget to reset the house settings to your preferences.
+		sdialog d_static_house_menu
+		ref1.resendtooltip 1,0
+	else
+		local.gold=<argtxt[0]>
+		if !(<isnum <local.gold>>) || (<dlocal.gold> <= 0)
+			src.sysmessage @,,1 Only positive numeric values are valid.
+		elif (<dlocal.gold> > <ref1.room.dtag0.value>)
+			src.sysmessage @33,,1 Price cannot be lower thant property base value .
+		elif (<local.lockdowns>) || (<local.secured>)
+			src.sysmessage @33,,1 You can't put a house on the market as long it has lockdowns/secure containers.
+		else
+			src.sysmessage @76,,1 Your house is now on the market for <f_numformat <dlocal.gold>> gp.
+			ref1.tag.price=<dlocal.gold>
+			ref1.tag.forsale=1
+			if (<def.hs_can_decay>)
+				if (<ref1.tag0.decay_exempt>)
+					ref1.tag.decay_exempt=
+					ref1.attr = 02|010
+					ref1.timer = 60*60*24*<ddef0.hs_can_decay>
+					src.sysmessage @33,,1 Your property decay timer has been set to <f_time_format <ref1.timer>>.
+				endif
+			else
+				ref1.attr = 010
+				ref1.timer = -1
+			endif
+			ref1.f_static_house_open
+			ref1.resendtooltip 1,0
+		endif
+	endif
+	sdialog d_static_house_menu
+
+on=6004 // property Removal menu
+	src.ctag.hs_menu=32
+	sdialog d_static_house_menu
+
+on=6005 // property Removal
+	ref1=<src.ctag0.hs_sign> // sign
+	local.housetype=<serv.list.static_hs_<ref1>.2>
+	if (<local.housetype>==<def.house_guild>)
+		src.sysmessage @33,,1 This is a guild house.
+		src.sysmessage @,,1 You must remove the guild declaration and move the guildstone before you can demolish the building.
+		return 1
+	endif
+	ref2=<serv.list.static_hs_<ref1>.0> // owner
+	local.total=<eval <ref1.room.dtag0.value>+<ref1.dtag0.boughtstorage>>
+	src.sysmessage @,,1 You spent <f_numformat <dlocal.total>> gp for upgrades on this property.
+	if <def.hs_demolish_fee>
+		local.demolishfee = <muldiv <dlocal.total>,<ddef.hs_demolish_fee>,100>
+		local.total -= <dlocal.demolishfee>
+		src.sysmessage @,,1 Your demolish fee of <f_numformat <dlocal.demolishfee>> gp was deducted from refund.
+	endif
+	if <ref2>==<src>
+		src.gold += <dlocal.total>
+		src.sysmessage @,,1 You have been refunded <f_numformat <dlocal.total>> gp.
+	else
+		ref2.gold += <dlocal.total>
+		src.sysmessage @,,1 <ref3.name> was refunded <f_numformat <dlocal.total>> gp.
+	endif
+	ref1.f_static_reset_sign
+	ref1.tag.forsale_new=1
+	ref1.resendtooltip 1,0
+	src.sysmessage @,,1 The number of static houses you own is now <src.static_house_total>.
+	src.ctag.hs_sign=
+	src.ctag.hs_menu=
+
+
+on=6010 // PAY TAX
+	ref1=<src.ctag0.hs_sign> // sign
+	ref3=<serv.list.static_hs_<ref1>.0> // owner
+	local.h=<ref3.static_house_total>
+	local.daysleft = <eval(((<ref1.timer>/60)/60)/24)>
+	local.days = <eval(<ddef0.hs_can_decay>-<dlocal.daysleft>)>
+	local.value = <eval <ref1.room.dtag0.value>+<ref1.dtag0.boughtstorage>>
+	if !<src.isgm>
+		if <def.hs_estate_tax>
+			if <local.h>
+				if (<dlocal.h> > <ddef0.hs_estate_tax>)
+					if (<ddef0.hs_estate_calc> == 1)
+						if <ref1.room.dtag0.maintenance_override>
+							local.rate = <eval(<ref1.room.dtag0.maintenance_override>*2)>
+							local.maintenance = <MULDIV <dlocal.value>,<dlocal.rate>,100>
+						else
+							local.rate = <eval(<ddef0.hs_property_tax>+<ddef0.hs_estate_rate>)>
+							local.maintenance = <MULDIV <dlocal.value>,<dlocal.rate>,100>
+						endif
+					elif (<ddef0.hs_estate_calc> == 2)
+						local.overage = <eval(<dlocal.h>-<ddef0.hs_estate_tax>)>
+						if <ref1.room.dtag0.maintenance_override>
+							local.rate = <eval(<ref1.room.dtag0.maintenance_override>*<dlocal.overage>)>
+							local.rate = <eval(<local.rate>+<ref1.room.dtag0.maintenance_override>)>
+							local.maintenance = <MULDIV <dlocal.value>,<dlocal.rate>,100>
+						else
+							local.rate = <eval(<ddef0.hs_estate_rate>*<dlocal.overage>)>
+							local.rate = <eval(<local.rate>+<def.hs_property_tax>)>
+							local.maintenance = <MULDIV <dlocal.value>,<dlocal.rate>,100>
+						endif
+					endif
+				else
+					if <ref1.room.dtag0.maintenance_override>
+						local.maintenance = <MULDIV <dlocal.value>,<ref1.room.dtag0.maintenance_override>,100>
+					else
+						local.maintenance = <MULDIV <dlocal.value>,<ddef0.hs_property_tax>,100>
+					endif
+				endif
+			else
+				if <ref1.room.dtag0.maintenance_override>
+					local.maintenance = <MULDIV <dlocal.value>,<ref1.room.dtag0.maintenance_override>,100>
+				else
+					local.maintenance = <MULDIV <dlocal.value>,<ddef0.hs_property_tax>,100>
+				endif
+			endif
+		else
+			if <ref1.room.dtag0.maintenance_override>
+				local.maintenance = <MULDIV <dlocal.value>,<ref1.room.dtag0.maintenance_override>,100>
+			else
+				local.maintenance = <MULDIV <dlocal.value>,<ddef0.hs_property_tax>,100>
+			endif
+		endif
+		local.maintenance = <eval(<local.maintenance>/30)>
+		local.maintpay = <eval(<dlocal.maintenance>*<dlocal.days>)>
+		if (<eval(((<ref1.timer>/60)/60)/24)> < <ddef0.hs_can_decay>)
+			if (<src.gold> < <dlocal.maintpay>)
+				src.sysmessage @33,,1 You lack the funds to pay the property tax.
+				sdialog d_static_house_menu
+				return 1
+			endif
+			src.gold -= <dlocal.maintpay>
+			ref1.timer += <eval((((<dlocal.days>-1)*60)*60)*24)>
+			src.sysmessage @,,1 <dlocal.maintpay> gp has been paid to cover <dlocal.days> days.
+			src.sysmessage @,,1 Your property tax is now paid for the next <ddef0.hs_can_decay> days.
+		else
+			src.sysmessage @33,,1 You cannot pay more property tax yet.
+		endif
+	else
+		ref1.timer = <eval(((<ddef0.hs_can_decay>*24) *60) *60)>
+		serv.log <src.name>(<src.account>)[<src>] update <ref1.name>[<uid>] decay timer of owner <ref3.name>(<ref3.account>)[<ref3.uid>]
+		src.sysmessage @33,,1 The house decay timer has been updated by a staff.
+	endif
+	sdialog d_static_house_menu
+
+
+ON=6011 // schedule demolition GM only
+	if <src.isgm>
+		ref1=<src.ctag0.hs_sign> // sign
+		if !(<ref1.tag0.demolition>)
+			ref1.tag.demolition=
+			ref1.resendtooltip 1,0
+			src.sysmessage @,,1 The scheduled demolition has been cancelled.
+		else
+			local.days=<argtxt[1]>
+			if !(<isnum <local.days>>)
+				src.sysmessage @33,,1 Invalid entry, days must be numeric (7-30)
+			elif (<dlocal.days> > 30)
+				src.sysmessage @33,,1 Demolition must occur within 30 days.
+			elif (<dlocal.days> < 7)
+				src.sysmessage @33,,1 The minimum notice period before demolition can occur is 7 days.
+			else
+				ref2=<serv.list.static_hs_<ref1>.0> // owner
+				if (<ref1.tag0.forsale>)
+					ref1.tag.forsale=
+					ref1.tag.price=
+					src.sysmessage @,,1 Property has been removed from housing market.
+				endif
+				ref1.tag.demolition=1
+				ref1.timer = 60*60*24*<dlocal.days>
+				ref1.resendtooltip 1,0
+				src.sysmessage @,,1 You have scheduled this house to be removed in <dlocal.days> days.
+				if <ref2.isonline>
+					ref2.trysrc <ref2> sysmessage @33,,1 Your property <ref1.name> has been scheduled for removal in <dlocal.days> days.
+				endif
+			endif
+		endif
+	endif
+	sdialog d_static_house_menu
+
+ON=6012 // set decay exempt GM only
+	if <src.isgm>
+		ref1=<src.ctag0.hs_sign> // sign
+		ref1.tag.decay_exempt=1
+		ref1.attr &= ~02
+		ref1.timer=-1
+		src.sysmessage @,,1 Property is now exempt from decay.
+	endif
+	sdialog d_static_house_menu
+
+ON=6013 // remove decay exempt GM only
+	if <src.isgm>
+		ref1=<src.ctag0.hs_sign> // sign
+		ref1.tag.decay_exempt=
+		ref1.attr |= 02
+		ref1.timer = 60*60*24*<ddef0.hs_can_decay>
+		src.sysmessage @,,1 Property will decay in <f_time_format <ref1.timer>>.
+	endif
+	sdialog d_static_house_menu
+
+// **********************************
+// **********************************
+// **********************************
+
+ON=20001 20005 // HEADER BUTTONS
+	ref1=<src.ctag0.hs_sign> // sign
+	local.opt=<eval <argn1>-20000>
+	if <dlocal.opt> > 3
+		if (<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.f_static_isfriend <ref1>>)
+			src.ctag.hs_menu=<dlocal.opt>
+		endif
+	else
+		src.ctag.hs_menu=<dlocal.opt>
+	endif
+	sdialog d_static_house_menu
+
+ON=20006
+	src.ctag0.dlg_bg ++
+	if <src.dctag0.dlg_bg>==<ddef0.dlg_bg_max>
+		src.ctag.dlg_bg=
+	endif
+	sdialog d_static_house_menu
+
+[EOF]

@@ -1,0 +1,433 @@
+[TYPEDEF t_static_house_sign]
+On=@static_sign_init
+	local.name=<room.name>
+	local.value=<room.dtag0.value>
+	serv.log <local.name> <dlocal.value>
+
+On=@DClick
+	if !(<room>)
+		return 1
+	elif (<src.room.defname>!=<room.defname>)
+		if <distance> > 3
+			src.sysmessage @,,1 You can't reach the sign.
+			return 1
+		endif
+	endif
+	src.ctag.hs_sign=<uid>
+	if <tag0.forsale_new>
+		src.f_resenddialog d_static_forsale
+	else
+		src.ctag.hs_menu=1
+		src.f_resenddialog d_static_house_menu
+		if <src.isgm>	// gm debug
+			src.f_resenddialog d_static_house_debug
+		endif
+	endif
+	
+	
+	return 1
+
+On=@Destroy
+	ref1=<serv.list.static_hs_<uid>.0>
+	if <ref1.isvalid> && <ref1.isplayer>
+		if <ref1.isonline>
+			ref1.trysrc <ref1> sysmessage @33,,1 Your static property <name> has been removed.
+		endif
+	endif
+
+
+[ITEMDEF i_sign_static_house]
+DEFNAME=i_sign_static_house
+ID=0bd1 //brass sign
+TYPE=T_SIGN_GUMP
+CAN=can_i_dcignorelos
+TDATA2=064
+RESOURCES=2 i_board,1 i_ingot_iron
+TEVENTS=t_static_house_sign,t_static_tooltip
+CATEGORY=Decoration - Signs
+SUBSECTION=Custom
+DESCRIPTION=Static House
+On=@Create
+	tag.forsale_new=1
+	attr=010
+	timerf 1,trigger @static_sign_init
+
+[ITEMDEF i_sign_static_house2]
+DEFNAME=i_sign_static_house2
+ID=0bd2	// //brass sign
+TYPE=T_SIGN_GUMP
+CAN=can_i_dcignorelos
+TDATA2=064
+RESOURCES=2 i_board,1 i_ingot_iron
+TEVENTS=t_static_house_sign,t_static_tooltip
+CATEGORY=Decoration - Signs
+SUBSECTION=Custom
+DESCRIPTION=Static House
+On=@Create
+	tag.forsale_new=1
+	attr=010
+	timerf 1,trigger @static_sign_init
+
+// Telepad for multis.
+[TYPEDEF ei_static_telepad]
+On=@ContextMenuRequest
+	ref1=<room.tag0.sign>
+	if (<src.is_static_owner <ref1>>) || (<src.isgm>)
+		src.AddContextEntry 700,1078864	// Access
+	endif
+
+On=@ContextMenuSelect
+	if (<argn>==700)
+		src.ctag.secure=<uid>
+		src.f_resenddialog d_static_secure
+	endif
+
+On=@Click
+	f_static_msg_access
+
+On=@Step
+	ref1=<room.tag0.sign>
+	if <ref1.isvalid> && <ref1.istevent.t_static_house_sign>
+		if !(<src.isgm>)
+			if (<src.f_static_can_access <ref1>,<uid>>)
+				return 0
+			endif
+			return 1
+		endif
+	endif
+
+// Doors event
+[TYPEDEF ei_static_door]
+// On=@Click
+// 	if ((<def0.hs_door_acces_key>) && (<serv.AutoHouseKeys>))
+// 	else
+// 		f_static_msg_access
+// 		return 1
+// 	endif
+
+ON=@Clienttooltip
+	if !(<def0.hs_door_acces_key> && <serv.AutoHouseKeys>)
+		f_static_tooltip_access
+	endif
+
+On=@ContextMenuRequest
+	ref1=<room.tag0.sign>
+	if <ref1.isvalid> && <ref1.istevent.t_static_house_sign>
+		if (<src.is_static_owner <ref1>>) || (<src.isgm>)
+			src.AddContextEntry 700,1078864	// Access
+		endif
+	endif
+
+On=@ContextMenuSelect
+	if (<argn> == 700)
+		ref1=<uid>
+		src.ctag.secure=<uid>
+		src.f_resenddialog d_static_secure
+	endif
+
+On=@DClick
+	if !<src.isplayer>
+		return 1
+	endif
+	ref1=<room.tag0.sign>				//sign
+	if <def.hs_can_decay>
+		if (<ref1.tag0.decay_exempt>)
+			if <ref1.timer>!=-1
+				ref1.timer=-1
+			endif
+		endif
+		if !<def.hs_property_tax>
+			if !(<src.is_static_owner <ref1>>)
+				if !(<ref1.tag0.demolition>)
+					ref1.timer=60*60*24*<ddef0.hs_can_decay>
+				else
+					src.sysmessage @33,,1 This house is improperly placed and has been scheduled for demolition in <f_time_format <ref1.timer>>.
+					src.sysmessage @33,,1 Unless you redeed it yourself before that time the house and all items within will be lost without refund.
+				endif
+			endif
+		else
+			if (<ref1.tag0.demolition>)
+				src.sysmessage @33,,1 This house is improperly placed and has been scheduled for demolition in <f_time_format <ref1.timer>>.
+				src.sysmessage @33,,1 Unless you redeed it yourself before that time the house and all items within will be lost without refund.
+			endif
+		endif
+	endif
+	if ((<def0.hs_door_acces_key>) && (<serv.AutoHouseKeys>)) // If keys are used, let the server check them.
+		return 0
+	else
+		if (<type>==t_door_locked)
+			type=t_door
+		endif
+		if (<src.f_static_can_access <ref1>,<uid>>)
+			UseDoor
+		endif
+		return 1
+	endif
+
+[TYPEDEF ei_static_lockdown]
+On=@ContextMenuRequest
+	ref1=<room.tag0.sign>
+	if (<src.is_static_owner <ref1>>) || (<tag0.lockedby> == <src>) || <src.isgm>
+		src.AddContextEntry 701,1015183	// Unlock
+	endif
+
+On=@ContextMenuSelect
+	if !(<room>)
+	elif (<distance> > 3)
+		src.sysmessage @,,1 You can't reach <name>.
+	elif (<room.defname>!=<src.room.defname>)
+		src.sysmessage @,,1 Invalid Room.
+	elif !(<isevent.ei_static_lockdown>)
+		src.sysmessage @,,1 <name> is no longer locked down.
+	else
+		if (<argn> == 701)
+			ref1=<room.tag0.sign>
+			local.lockdowns=<eval <serv.list.static_hs_<ref1>.3>-1>
+			serv.list.static_hs_<ref1>.3=<dlocal.lockdowns>
+			events -ei_house_lockdown
+			tag.lockedby=
+			if !<isempty <tag.old_attr>>
+				attr=<tag.old_attr>
+				tag.old_attr=
+			endif
+			if <attr>&attr_decay
+				timer=<eval(<serv.DecayTimer>*60)>
+			endif
+			message @,,2 501726	// No longer locked down!
+			resendtooltip 1,0
+		endif
+	endif
+
+On=@PickUp_Ground   // Do not allow to move this item
+	if (!<src.IsGM>)
+		return 1
+	endif
+
+On=@PickUp_Self // For containers only, do not allow to pick up items
+	if (!<src.IsGM>)
+		return 1
+	endif
+
+On=@Destroy
+	if <def.hs_hs_secure_locks_limit>
+		ref1=<room.tag0.sign>
+		local.lockdowns=<eval <serv.list.static_hs_<ref1>.3>-1>
+		serv.list.static_hs_<ref1>.3=<dlocal.lockdowns>
+	endif
+
+// Secured Containers.
+// Only allowed players can manage their storage (Refer to f_static_can_access to see the allowance).
+[TYPEDEF ei_static_secure]
+// On=@Click
+// 	f_static_msg_access
+
+On=@Clienttooltip
+	if <istevent.t_item_tooltip> // custom tooltip event
+	else
+		local.f_tooltip = Locked Down & Secure
+		if (<tag0.access> == <def.house_access_owner>)
+			local.f_tooltip .= <def.br>Access <def.bfont_lyellow>Owner Only<def.bfont_white>
+		elif (<tag0.access> == <def.house_access_owner>)
+			local.f_tooltip .= <def.br>Access <def.bfont_lyellow>Co-Owners<def.bfont_white>
+		elif (<tag0.access> == <def.house_access_friend>)
+			local.f_tooltip .= <def.br>Access <def.bfont_lyellow>Friends<def.bfont_white>
+		elif (<tag0.access> == <def.house_access_guild>)
+			ref1 = <tag.is_guild>
+			if <ref1.isvalid>
+				local.f_tooltip .= <def.br><def.bfont_lyellow>[<ref1.abbrev>]<def.bfont_white>
+				local.f_tooltip .= <def.br>Guild Members Only
+			endif
+		endif
+		ADDCLILOC <ddef0.empty_cliloc>,<local.f_tooltip>
+	endif
+
+On=@ContextMenuRequest
+	ref1=<room.tag0.sign>
+	if (<src.is_static_owner <ref1>>) || (<src.isgm>)
+		src.AddContextEntry 700,1078864	// Access
+		src.AddContextEntry 701,1015183	// Unlock
+	endif
+
+On=@ContextMenuSelect
+	if (<distance> > 3)
+		src.sysmessage @,,1 You can't reach <name>.
+		return 1
+	endif
+	if (<argn> == 700)
+		src.ctag.secure=<uid>
+		src.f_resenddialog d_static_secure
+	elif (<argn> == 701)
+		ref1=<room.tag0.sign>
+		local.secured=<eval <serv.list.static_hs_<ref1>.4>-1>
+		serv.list.static_hs_<ref1>.4=<dlocal.secured>
+		events=-ei_static_secure
+		tag.access=
+		if !<isempty <tag0.old_attr>>
+			attr=<tag0.old_attr>
+			tag.old_attr =
+		endif
+		if <attr>&attr_decay
+			timer=<eval(<serv.DecayTimer>*60)>
+		endif		
+		message @,,2 501718	// No longer secure!
+		resendtooltip 1,0
+		update
+	endif
+
+On=@DClick
+	if (<src.f_static_can_access <room.tag0.sign>,<uid>>)	// uid=container
+		return 0
+	endif
+	return 1
+
+On=@PickUp_Ground
+	if (!<src.IsGM>)
+		 return 1
+	endif
+
+On=@PickUp_Self
+	if (<src.f_static_can_access <room.tag0.sign>,<uid>>)	// uid=container
+		return 0
+	endif
+	return 1
+
+On=@DropOn_Self
+	if (<src.f_static_can_access <room.tag0.sign>,<uid>>)	// uid=container
+		return 0
+	endif
+	return 1
+
+On=@Destroy
+	if <def.hs_hs_secure_locks_limit>
+		ref1=<room.tag0.sign>
+		local.secured=<eval <serv.list.static_hs_<ref1>.4>-1>
+		serv.list.static_hs_<ref1>.4=<dlocal.secured>
+	endif
+
+// @Custom region event for houses.
+[REGIONTYPE r_static_house_system]
+On=@Enter
+	if <src.isplayer>
+		src.events +e_static_house_events
+		src.dspeech +spk_static_cmds
+		// src.timerf 1, f_house_visitor_count
+		ref1=<tag.sign> // room tag sign
+		ref3=<serv.list.static_hs_<ref1>.0>	// owner
+		local.housetype=<serv.list.static_hs_<ref1>.2>
+		// serv.log <src.name> entered <name> sign is <htag.sign> housetype <local.housetype>
+		if !<src.isgm>
+			if <local.housetype> == <def.house_private>
+				if (<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.f_static_isfriend <ref1>>) || (<src.f_static_isaccess <ref1>>) || (<src.isgm>)
+					return 0
+				elseif !(strcmpi (<ref3.account>,<src.account>))	// allow same acc as owner
+					return 0
+				elseif (<local.housetype> == <def.house_guild>)
+					if (<src.guild> == <tag0.is_guild>)
+						return 0
+					else
+						src.sysmessage @33,,1 You are not a member of this guild.
+						return 1
+					endif
+				else
+					src.sysmessage @33,,1 This is private property. You may not trespass.
+					return 1
+				endif
+			else
+				if (<src.f_static_isban <ref1>>)
+					src.sysmessage @33,,1 You are banned from this property.
+					return 1
+				else
+					return 0
+				endif
+			endif
+		endif
+	endif
+
+On=@Exit
+	src.dialogclose d_static_house_menu 
+	src.events -e_static_house_events
+	if <src.isdspeech.spk_static_cmds>
+		src.dspeech -spk_static_cmds
+	endif
+
+// [ROOMDEF a_sage_advice_1]
+// EVENTS=r_town_minerals,r_town_water,r_default_tree,r_default_grass
+// NAME=Sage Advice
+// GROUP=Britain
+// FLAGS=region_flag_nobuilding|region_antimagic_recall_in	// |region_flag_guarded
+// P=1571,1717,35,0
+// RECT=1567,1695,1585,1713,0
+// RECT=1567,1713,1577,1721,0
+// tag.GUARDOWNER=the city
+// tag.MUSIC=midi_britain1,midi_britain2
+// tag.value=5501
+// tag.maxlockdowns=500
+// tag0.maxsecured=50
+// tag.maxstorage=550
+// tag.maxvendors=2
+// // tag.lockdownspercent
+// tag.sign=04000462d
+
+[EVENTS e_static_house_events]
+On=@ItemDClick
+	if (<act.defname> == <def.vendor_deed_id>)
+		ref1=<room.tag0.sign> // sign
+		ref2=<room.uid>
+		ref3=<serv.list.static_hs_<ref1>.0> //owner
+		local.housetype=<serv.list.static_hs_<ref1>.2>
+
+		if !<def.house_list_vendors>
+			if !((<src.is_static_owner <ref1>>) || (<src.isgm>) || !(strcmpi (<ref3.account>,<src.account>)))
+				src.sysmessage @33,,1 Only the home owner may place vendors here.
+				return 1
+			else
+				if (<local.housetype> == <def.house_private>)
+					src.sysmessage @33,,1 You must set your building to public before you can place vendors here.
+					return 1
+				else
+					if (<ref1.dtag0.vendors> < <room.dtag0.maxvendors>)
+						return 0
+					else
+						src.sysmessage @33,,1 You have no available vendor slots.
+						src.sysmessage @33,,1 You must remove an existing vendor before you can place a new one.
+						return 1
+					endif
+				endif
+			endif
+		else
+			if (<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.f_static_isfriend <ref1>>) || (<src.isgm>) || !(strcmpi (<ref3.account>,<src.account>))
+				if (<ref1.housetype> == <def.house_private>)
+					src.sysmessage @33,,1 You must set your building to public before you can place vendors here.
+					return 1
+				else
+					if (<ref1.dtag0.vendors> < <room.dtag0.maxvendors>)
+						return 0
+					else
+						src.sysmessage @33,,1 You have no available vendor slots.
+						src.sysmessage @33,,1 You must remove an existing vendor before you can place a new one.
+						return 1
+					endif
+				endif
+			else
+				src.sysmessage @33,,1 Only people on the home lists may place a vendor here.
+				return 1
+			endif
+		endif
+	endif
+
+On=@ContextMenuRequest
+	if (<uid> == <src>) && !(<isempty <room.tag.sign>>)
+		src.AddContextEntry 101,3006207
+	endif
+
+On=@ContextMenuSelect
+	if (<argn> == 101)
+		ref1=<room.tag0.sign>
+		if <isempty <room.tag.exit>>
+			src.go <ref1.p>
+		else
+			src.go <room.tag.exit>
+		endif
+	endif
+
+[EOF]

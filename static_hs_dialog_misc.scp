@@ -1,0 +1,332 @@
+[DEFNAME static_hs_commands]
+static_hs_speech_command_1		Lock This,Locks an item down,f_static_item_lock,1,"What do you wish to lockdown?"
+static_hs_speech_command_2		Release This,Releases an item,f_static_item_unlock,1,"What do you wish to release?"
+static_hs_speech_command_3		Secure This,Adds security to containers,f_static_item_secure,1,"What do you wish to secure?"
+static_hs_speech_command_4		Ban Person,Bans a player from your house,"f_static_add_list 3",1,Select player to ban
+static_hs_speech_command_5		Eject,Removes a player from your house,f_static_eject,1,Select player to eject
+static_hs_speech_command_6		Place Trashcan,Places a trashcan where you are standing,f_static_place_trashcan,0
+static_hs_speech_command_7		Remove Trashcan,Removes a trashcan,f_static_remove_trashcan,0
+static_hs_speech_command_8		Bank,Opens your bank box,bankself,0 // needs <def.hs_can_bank>==1
+// page 2
+static_hs_speech_command_9		Move North,Moves targeted item north,"f_static_move_item n",1,"What do you wish to move?" // f_static_moveN
+static_hs_speech_command_10		Move South,Moves targeted item south,"f_static_move_item s",1,"What do you wish to move?"
+static_hs_speech_command_11		Move East,Moves targeted item east,"f_static_move_item e",1,"What do you wish to move?"
+static_hs_speech_command_12		Move West,Moves targeted item west,"f_static_move_item w",1,"What do you wish to move?"
+static_hs_speech_command_13		Move SE,Moves targeted item south-east,"f_static_move_item se",1,"What do you wish to move?"
+static_hs_speech_command_14		Move SW,Moves targeted item south-west,"f_static_move_item sw",1,"What do you wish to move?"
+static_hs_speech_command_15		Move NE,Moves targeted item north-east,"f_static_move_item ne",1,"What do you wish to move?"
+static_hs_speech_command_16		Move NW,Moves targeted item north-west,"f_static_move_item nw",1,"What do you wish to move?"
+
+// add flip
+
+[DIALOG d_static_hs_commands]
+100,100
+if <src.dctag0.menu_page>==1
+	local.loop=1 <qval <def.hs_can_bank>?8:7>
+else
+	local.loop=9 16
+endif
+
+page 0
+f_house_dialog 100,100,440,38
+f_house_dialog 100,138,440,224
+dorigin 110 112
+dhtmlgump - - 422 20 0 0 <def.bfont_hs_title><def.center>VERBAL COMMANDS
+button +406 -2 22150 22152 1 0 0 // exit
+button - -2 <qval <isempty <src.ctag.menu_page>>?9904 9903:9910 9909> 1 0 100 // page
+dorigin 150 154
+dhtmlgump - - 120 20 0 0 <def.bfont_hs_yellow>COMMAND
+dhtmlgump *120 - 274 20 0 0 <def.bfont_hs_yellow>DESCRIPTION
+dorigin 114 156
+for <local.loop>
+	args=<def0.static_hs_speech_command_<dlocal._for>>
+	button - *21 4005 4007 1 0 <dlocal._for>
+	dhtmlgump +37 - 120 20 0 0 <def.bfont_hs_text1><argv[0]>
+	dhtmlgump +157 - 274 20 0 0 <def.bfont_hs_text3><argv[1]>.
+endfor
+
+[DIALOG d_static_hs_commands prebutton]
+ref1=<src.room.tag0.sign>
+src.dialogclose d_static_hs_commands
+if !(<src.isevent.e_static_house_events>)
+	return 1
+elif <dargn1>==0 || <dargn1>==100
+elif <dargn1>==3
+	if !(<src.is_static_owner <ref1>> || <src.f_static_iscoowner <ref1>> || <src.isgm>)
+		return 1
+	endif
+else
+	if !(<src.is_static_owner <ref1>> || <src.f_static_iscoowner <ref1>> || <src.f_static_isfriend <ref1>> || <src.isgm>)
+		return 1
+	endif
+endif
+serv.log @3,0,0 pressed <dargn1>
+
+[DIALOG d_static_hs_commands button]
+on=1 16
+	args=<def0.static_hs_speech_command_<dargn1>>
+	src.message @1151,,1 <argv[0]>
+	if !<isempty <argv[4]>>
+		src.message @,,1 <argv[4]>
+	endif
+	if <argv[3]>==1
+		src.targetf <argv[2]>
+	else
+		src.<argv[2]>
+	endif
+	sdialog d_static_hs_commands
+
+on=100
+	src.ctag.menu_page=<qval <isempty <src.ctag.menu_page>>?1:>
+	sdialog d_static_hs_commands
+
+// ***********************************
+// ***********************************
+// ***********************************
+
+[DIALOG d_static_secure]
+100,100
+ref1=<src.ctag0.hs_sign> // sign
+ref2=<src.ctag0.secure> // item
+ref3=<serv.list.static_hs_<ref1>.0>	 //owner
+local.housetype=<serv.list.static_hs_<ref1>.2>
+
+f_house_dialog 0,0,200,180
+gumppictiled 4 30 190 5 5058  // top line
+checkertrans 4 30 190 5
+dhtmlgump 14 10 176 20 0 0 <def.center><def.bfont_hs_yellow><ref2.name> Access
+dhtmlgump 14 41 176 20 0 0 <def.bfont_hs_text1>Owner: <def.bfont_hs_title><ref3.name>
+dorigin 50 66
+dhtmlgump - - 180 20 0 0 <qval (<ref2.tag0.access>==<def.house_access_owner>)?<def.bfont_hs_text2>:<def.bfont_hs_text1>>Owner Only
+button -34 - <qval (<ref2.tag0.access>==<def.house_access_owner>)? 4006 4006 0 0:4005 4007 1 0> 1
+dhtmlgump - *20 180 20 0 0 <qval (<ref2.tag0.access>==<def.house_access_coowner>)?<def.bfont_hs_text2>:<def.bfont_hs_text1>>Co-owners
+button -34 - <qval (<ref2.tag0.access>==<def.house_access_coowner>)? 4006 4006 0 0:4005 4007 1 0> 2
+dhtmlgump - *20 180 20 0 0 <qval (<ref2.tag0.access>==<def.house_access_friend>)?<def.bfont_hs_text2>:<def.bfont_hs_text1>>Friends
+button -34 - <qval (<ref2.tag0.access>==<def.house_access_friend>)? 4006 4006 0 0:4005 4007 1 0> 3
+if (<local.housetype>==<def.house_guild>)
+	dhtmlgump - *20 180 20 0 0 <qval (<ref2.tag0.access>==<def.house_access_guild>)?<def.bfont_hs_text2>:<def.bfont_hs_text1>>Guild Members
+	button -34 - <qval (<ref2.tag0.access>==<def.house_access_guild>)? 4006 4006 0 0:4005 4007 1 0> 4
+else
+	dhtmlgump - *20 180 20 0 0 <def.bfont_hs_gray>Guild Members
+	gumppic -34 - 4020 998
+endif
+dhtmlgump - *20 180 20 0 0 <qval (<ref2.tag0.access>==<def.house_access_all>)?<def.bfont_hs_text2>:<def.bfont_hs_text1>>Anyone
+button -34 - <qval (<ref2.tag0.access>==<def.house_access_all>)? 4006 4006 0 0:4005 4007 1 0> 5
+
+[DIALOG d_static_secure prebutton]
+src.dialogclose d_static_secure
+
+[DIALOG d_static_secure button]
+ON=1 5
+	ref1=<src.ctag0.hs_sign> // sign
+	ref2=<src.ctag0.secure> // item
+	doswitch <eval(<argn> - 1)>
+		ref2.tag.access = <def.house_access_owner>
+		ref2.tag.access = <def.house_access_coowner>
+		ref2.tag.access = <def.house_access_friend>
+		ref2.tag.access = <def.house_access_guild>
+		ref2.tag.access = <def.house_access_all>
+	enddo
+	ref2.resendtooltip 1,0
+	doswitch <eval(<argn> - 1)>
+		src.sysmessage @,,1 Only the Owner may now open <ref2.name>.
+		src.sysmessage @,,1 Only the Owner & Co-owners may now open <ref2.name>.
+		src.sysmessage @,,1 Only the Owner, Co-owners & Friends of the house may now open <ref2.name>.
+		src.sysmessage @,,1 Guild members may now open <ref2.name>.
+		src.sysmessage @42,,1 Everyone can open <ref2.name>.
+	enddo
+	sdialog d_static_secure
+
+// ***********************************
+// ***********************************
+// ***********************************
+
+[DIALOG d_static_forsale]
+100,100
+page 0
+ref1=<src.ctag0.hs_sign> //sign
+local.gold=<ref1.room.dtag0.value>
+
+f_house_dialog 0,106,410,166
+dorigin 252 124
+gumppic - - 100 // brass sign gump
+dhtmlgump +18 +16 106 20 0 0 <def.center><def.bfont_size4><def.h3>FOR SALE
+dhtmlgump +18 *34 106 60 0 0 <def.center><def.bfont_hs_text1><def.bfont_size4><ref1.room.name><def.br><def.bfont_hs_gray><def.bfont_size1><ref1.region.name>
+dorigin 20 106
+dhtmlgump - *20 180 20 0 0 <def.bfont_hs_text1>Property Value
+dhtmlgump +148 - 180 20 0 0 <def.bfont_hs_text2><f_numformat <dlocal.gold>><def.bfont_hs_text1> gp
+dhtmlgump - *20 180 20 0 0 <def.bfont_hs_text1>Maximum Lockdowns
+dhtmlgump +148 - 180 20 0 0 <def.bfont_hs_text1><QVAL (<def.hs_hs_secure_locks_limit>)?<ref1.room.dtag0.maxlockdowns>:Unlimited>
+dhtmlgump - *20 180 20 0 0 <def.bfont_hs_text1>Maximum Secured
+dhtmlgump +148 - 180 20 0 0 <def.bfont_hs_text1><QVAL (<def.hs_hs_secure_locks_limit>)?<ref1.room.dtag0.maxsecured>:Unlimited>
+dhtmlgump - *20 180 20 0 0 <def.bfont_hs_text1>Maximum Storage
+dhtmlgump +148 - 180 20 0 0 <def.bfont_hs_text1><QVAL (<def.hs_hs_secure_locks_limit>)? <ref1.room.dtag0.maxstorage>:Unlimited>
+dhtmlgump - *20 180 20 0 0 <def.bfont_hs_text1>Maximum Vendors
+dhtmlgump +148 - 180 20 0 0 <def.bfont_hs_text1><ref1.room.dtag0.maxvendors>
+button +5 *30 4005 4007 1 0 1
+dhtmlgump +36 - 250 20 0 0 <def.bfont_hs_title>Buy this property for <def.bfont_hs_text2><f_numformat <dlocal.gold>><def.bfont_hs_title> gp
+
+[DIALOG d_static_forsale prebutton]
+src.dialogclose d_static_forsale
+src.dialogclose d_static_house_menu
+ref1=<src.ctag0.hs_sign> //sign
+if <src.room.defname>!=<ref1.room.defname>
+	src.sysmessage @,,1 The sign is too far away.
+	return 1
+endif
+
+[DIALOG d_static_forsale button]
+ON=0
+	return 1
+ON=1
+	ref1=<src.ctag0.hs_sign> //sign
+	if !<src.isgm>
+		local.gold=<ref1.room.dtag0.value>
+		if <src.gold> < <dlocal.gold>
+			src.sysmessage @,,1 You don't have enough gold to buy this property.
+			return 1
+		elif <src.static_house_total> > <ddef0.hs_static_amount_max>
+			src.sysmessage 33,,1 You cannot have more properties (Nax <ddef0.hs_static_amount_max>).
+			return 1
+		endif
+		src.gold -= <dlocal.gold>
+	endif
+	src.f_addlist_static_house <ref1> // list stuff
+	ref1.name=<ref1.room.name>
+	ref1.tag.forsale_new=
+	ref1.tag.buildon=<serv.rtime>
+	ref1.room.events=+r_static_house_system
+	ref1.room.flags=region_flag_nodecay|region_flag_nobuilding|region_antimagic_recall_in|region_flag_insta_logout
+	if <def.hs_can_decay>
+		ref1.attr = 02|010
+		ref1.timer = 60*60*24*<ddef0.hs_can_decay>
+	else
+		ref1.attr = 010
+		ref1.timer = -1
+	endif
+	ref1.f_static_recode_doors
+	src.events=+e_static_house_events
+	src.dspeech=+spk_static_cmds
+	if <local.gold>
+		src.sysmessage @70,,1 You are the new owner of <ref1.name>, bought for <f_numformat <dlocal.gold>> gp.
+	endif
+	src.ctag.hs_menu=
+	src.f_resenddialog d_static_house_menu
+
+// ***********************************
+// ***********************************
+// ***********************************
+
+[DIALOG d_static_house_debug]
+400,100
+page 0
+ref1=<src.ctag0.hs_sign> //sign
+ref3=<serv.list.static_hs_<ref1>.0> //owner
+if <tag0.is_guild>
+	ref5 = <tag0.is_guild>
+	if <ref5.isvalid>
+		local.abbrev=<qval <ISEMPTY <ref5.abbrev>>?[None]:<ref5.abbrev>>
+	endif
+endif
+local.housetype=<serv.list.static_hs_<ref1>.2>
+local.lockdowns=<serv.list.static_hs_<ref1>.3>
+local.secured=<serv.list.static_hs_<ref1>.4>
+local.increasedstorage = <serv.list.static_hs_<ref1>.5>
+local.current_storage = <dlocal.lockdowns> + <dlocal.secured>
+if <dlocal.increasedstorage>!=0
+	local.max_lockdowns = <room.dtag0.maxlockdowns> + <muldiv <room.dtag0.maxlockdowns>,<dlocal.increasedstorage>,100>
+	local.max_secured = <room.dtag0.maxsecured> + <muldiv <room.dtag0.maxsecured>,<dlocal.increasedstorage>,100>
+	local.max_storage = <room.dtag0.maxstorage> + <muldiv <room.dtag0.maxstorage>,<dlocal.increasedstorage>,100>
+else
+	local.max_lockdowns = <room.dtag0.maxlockdowns>
+	local.max_secured = <room.dtag0.maxsecured>
+	local.max_storage = <room.dtag0.maxstorage>
+endif
+
+f_house_dialog 470,40,330,460
+dorigin 480 40
+dhtmlgump - *20 120 20 0 0 <def.bfont_hs_text2>SIGN
+dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_title><ref1> <def.bfont_size1><def.bfont_hs_gray>(<name>)
+dhtmlgump - *20 120 20 0 0 <def.bfont_hs_text1>Room tag sign
+dhtmlgump +136 - 260 20 0 0 <qval <ref1.room.htag.sign>==<ref1>?<def.bfont_hs_title>:<def.bfont_hs_red>><ref1.room.htag.sign>
+dhtmlgump - *20 120 20 0 0 <def.bfont_hs_text1>Room Name
+dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_title><def.bfont_size1><ref1.room.name> <def.bfont_hs_gray>(<ref1.room.uid>)
+dhtmlgump - *20 120 20 0 0 <def.bfont_hs_text1>Room value
+dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_title><f_numformat <ref1.room.dtag0.value>>
+dhtmlgump - *20 120 20 0 0 <def.bfont_hs_text1>Room maxlockdowns
+dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_title><f_numformat <ref1.room.dtag0.maxlockdowns>>
+dhtmlgump - *20 120 20 0 0 <def.bfont_hs_text1>Room maxsecured
+dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_title><f_numformat <ref1.room.dtag0.maxsecured>>
+dhtmlgump - *20 120 20 0 0 <def.bfont_hs_text1>Room maxstorage
+dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_title><f_numformat <ref1.room.dtag0.maxstorage>>
+dhtmlgump - *20 120 20 0 0 <def.bfont_hs_text1>Room maxvendors
+dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_title><ref1.room.dtag0.maxvendors>
+
+dhtmlgump - *30 120 20 0 0 <def.bfont_hs_text2>LIST
+dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_title><ref1> (<serv.list.static_hs_<ref1>.count>)
+dhtmlgump - *20 120 20 0 0 <def.bfont_hs_gray>0. <def.bfont_hs_text1>Owner
+dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_title><ref3> (<ref3.name>)
+dhtmlgump - *20 120 20 0 0 <def.bfont_hs_gray>1. <def.bfont_hs_text1>Default Name
+dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_title><serv.list.static_hs_<ref1>.1>
+dhtmlgump - *20 120 20 0 0 <def.bfont_hs_gray>2. <def.bfont_hs_text1>Housetype
+dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_title><dlocal.housetype> <qval <dlocal.housetype>==0?(private):>
+dhtmlgump - *20 120 20 0 0 <def.bfont_hs_gray>3. <def.bfont_hs_text1>Lockdowns
+dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_title><dlocal.lockdowns> / <ref1.room.dtag0.maxlockdowns>
+dhtmlgump - *20 120 20 0 0 <def.bfont_hs_gray>4. <def.bfont_hs_text1>Secured
+dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_title><dlocal.secured> / <ref1.room.dtag0.maxsecured>
+dhtmlgump - *20 130 20 0 0 <def.bfont_hs_gray>5. <def.bfont_hs_text1>Increased Storage
+dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_title><dlocal.increasedstorage>% total <dlocal.max_storage>
+dhtmlgump - *20 130 20 0 0 <def.bfont_hs_gray>6. <def.bfont_hs_text1>Vendors
+dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_title><dlocal.vendors> / <ref1.room.dtag0.maxvendors>
+dhtmlgump - *20 120 20 0 0 <def.bfont_hs_text1>Current Storage
+dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_title><dlocal.current_storage>  / <ref1.room.dtag0.maxstorage>
+dhtmlgump - *20 120 20 0 0 <def.bfont_hs_text1>Coowner List
+dhtmlgump +136 - 260 20 0 0 <qval <serv.list.static_hs_<ref1>_coowners.count>==-1?<def.bfont_hs_gray>Empty:<def.bfont_hs_text2><serv.list.static_hs_<ref1>_coowners.count>>
+dhtmlgump - *20 120 20 0 0 <def.bfont_hs_text1>Friend List
+dhtmlgump +136 - 260 20 0 0 <qval <serv.list.static_hs_<ref1>_friends.count>==-1?<def.bfont_hs_gray>Empty:<def.bfont_hs_text2><serv.list.static_hs_<ref1>_friends.count>>
+dhtmlgump - *20 120 20 0 0 <def.bfont_hs_text1>Access List
+dhtmlgump +136 - 260 20 0 0 <qval <serv.list.static_hs_<ref1>_access.count>==-1?<def.bfont_hs_gray>Empty:<def.bfont_hs_text2><serv.list.static_hs_<ref1>_access.count>>
+dhtmlgump - *20 120 20 0 0 <def.bfont_hs_text1>Ban List
+dhtmlgump +136 - 260 20 0 0 <qval <serv.list.static_hs_<ref1>_ban.count>==-1?<def.bfont_hs_gray>Empty:<def.bfont_hs_text2><serv.list.static_hs_<ref1>_ban.count>>
+
+if (<serv.list.static_hs_<ref1>_coowners.0>!=-1 || <serv.list.static_hs_<ref1>_friends.0>!=-1 || <serv.list.static_hs_<ref1>_access.0>!=-1 || <serv.list.static_hs_<ref1>_ban.0>!=-1)
+	f_house_dialog 770,40,300,460
+	dorigin 780 40
+	if <serv.list.static_hs_<ref1>_coowners.0>!=-1
+		dhtmlgump - *20 120 20 0 0 <def.bfont_hs_text2>COOWNERS
+		for 0 <eval <serv.list.static_hs_<ref1>_coowners.count>-1>
+			dhtmlgump - *20 120 20 0 0 <def.bfont_hs_gray>Coowner <dlocal._for>
+			dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_text1><uid.<serv.list.static_hs_<ref1>_coowners.0>.name> (<serv.list.static_hs_<ref1>_coowners.<dlocal._for>>)
+		endfor
+	endif
+	if <serv.list.static_hs_<ref1>_friends.0>!=-1
+		dhtmlgump - *20 120 20 0 0 <def.bfont_hs_text2>FRIENDS
+		for 0 <eval <serv.list.static_hs_<ref1>_friends.count>-1>
+			dhtmlgump - *20 120 20 0 0 <def.bfont_hs_gray>Friend <dlocal._for>
+			dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_text1><uid.<serv.list.static_hs_<ref1>_friends.0>.name> (<serv.list.static_hs_<ref1>_friends.<dlocal._for>>)
+		endfor
+	endif
+	if <serv.list.static_hs_<ref1>_access.0>!=-1
+		dhtmlgump - *20 120 20 0 0 <def.bfont_hs_text2>ACCESS
+		for 0 <eval <serv.list.static_hs_<ref1>_access.count>-1>
+			dhtmlgump - *20 120 20 0 0 <def.bfont_hs_gray>Access <dlocal._for>
+			dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_text1><uid.<serv.list.static_hs_<ref1>_access.0>.name> (<serv.list.static_hs_<ref1>_access.<dlocal._for>>)
+		endfor
+	endif
+	if <serv.list.static_hs_<ref1>_ban.0>!=-1
+		dhtmlgump - *20 120 20 0 0 <def.bfont_hs_text2>BAN
+		for 0 <eval <serv.list.static_hs_<ref1>_ban.count>-1>
+			dhtmlgump - *20 120 20 0 0 <def.bfont_hs_gray>Ban <dlocal._for>
+			dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_text1><uid.<serv.list.static_hs_<ref1>_ban.0>.name> (<serv.list.static_hs_<ref1>_ban.<dlocal._for>>)
+		endfor
+	endif
+endif
+
+[DIALOG d_static_house_debug prebutton]
+src.dialogclose d_static_house_debug
+
+[DIALOG d_static_house_debug button]
+ON=0
+	return 1
+
+[EOF]

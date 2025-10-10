@@ -1,0 +1,184 @@
+//****************************************************************************
+// SphereServer by: SphereServer development team and Menasoft.
+// www.sphereserver.net
+//****************************************************************************
+VERSION=X1
+
+[SPEECH spk_static_cmds]
+ON=lock this*
+	ref1=<room.tag0.sign>
+	if !((<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.f_static_isfriend <ref1>>) || (<src.isgm>))
+		return 0
+	else
+		src.targetf f_static_item_lock
+		src.message @,,1 What do you wish to lockdown?
+		return 1
+	endif
+
+ON=release this*
+	ref1=<room.tag0.sign>
+	if !((<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.f_static_isfriend <ref1>>) || (<src.isgm>))
+		return 0
+	else
+		src.targetf f_static_item_unlock
+		src.message @,,1 What do you wish to release?
+		return 1
+	endif
+
+ON=secure this*
+	ref1=<room.tag0.sign>
+	// if !(<is_static_owner <ref1>,<src>> || <f_static_iscoowner <ref1>,<src>> || <src.isgm>)
+	if !((<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.isgm>))
+		return 0
+	else
+		src.targetf f_static_item_secure
+		src.message @,,1 What do you wish to secure?
+		return 1
+	endif
+
+
+
+ON=flip this*
+	ref1=<room.tag0.sign>
+	if !((<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.f_static_isfriend <ref1>>) || (<src.isgm>))
+		return 0
+	else
+		src.targetf f_static_item_flip
+		src.message @,,1 What do you wish to flip?
+		return 1
+	endif
+
+ON=*move north*
+	ref1=<room.tag0.sign>
+	if !((<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.f_static_isfriend <ref1>>) || (<src.isgm>))
+		return 0
+	else
+		src.targetf f_static_move_item n
+		src.message @,,1 What do you wish to move north?
+		return 1
+	endif
+
+ON=move south*
+	ref1=<room.tag0.sign>
+	if !((<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.f_static_isfriend <ref1>>) || (<src.isgm>))
+		return 0
+	else
+		src.targetf f_static_move_item s
+		src.message @,,1 What do you wish to move?
+		return 1
+	endif
+
+ON=move east*
+	ref1=<room.tag0.sign>
+	if !((<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.f_static_isfriend <ref1>>) || (<src.isgm>))
+		return 0
+	else
+		src.targetf f_static_move_item e
+		src.message @,,1 What do you wish to move?
+		return 1
+	endif
+
+ON=move west*
+	ref1=<room.tag0.sign>
+	if !((<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.f_static_isfriend <ref1>>) || (<src.isgm>))
+		return 0
+	else
+		src.targetf f_static_move_item w
+		src.message @,,1 What do you wish to move?
+		return 1
+	endif
+
+ON=*move ne*
+	ref1=<room.tag0.sign>
+	if !((<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.f_static_isfriend <ref1>>) || (<src.isgm>))
+		return 0
+	else
+		src.targetf f_static_move_item ne
+		src.message @,,1 What do you wish to move north east?
+		return 1
+	endif
+
+ON=*move nw*
+	ref1=<room.tag0.sign>
+	if !((<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.f_static_isfriend <ref1>>) || (<src.isgm>))
+		return 0
+	else
+		src.targetf f_static_move_item nw
+		src.message @,,1 What do you wish to move north west?
+		return 1
+	endif
+
+ON=*move se*
+	ref1=<room.tag0.sign>
+	if !((<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.f_static_isfriend <ref1>>) || (<src.isgm>))
+		return 0
+	else
+		src.targetf f_static_move_item se
+		src.message @,,1 What do you wish to move south east?
+		return 1
+	endif
+
+ON=*move sw*
+	ref1=<room.tag0.sign>
+	if !((<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.f_static_isfriend <ref1>>) || (<src.isgm>))
+		return 0
+	else
+		src.targetf f_static_move_item sw
+		src.message @,,1 What do you wish to move south west?
+		return 1
+	endif
+
+ON=bank*
+	if <def.hs_can_bank>
+		ref1=<room.tag0.sign>
+		if !((<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.f_static_isfriend <ref1>>) || (<src.isgm>))
+			return 0
+		else
+			src.bankself
+			src.sysmessage @,,1 You have <f_math_cat <src.bankbalance>> gold in your Bank Box.
+			return 1
+		endif
+	endif
+
+ON=eject*
+	ref1=<room.tag0.sign>
+	if !((<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.f_static_isfriend <ref1>>) || (<src.isgm>))
+		return 0
+	else
+		src.targetf f_static_eject
+		src.message @,,1 Select player to eject.
+		return 1
+	endif
+
+ON=Ban Person*
+	ref1=<room.tag0.sign>
+	if !((<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.f_static_isfriend <ref1>>) || (<src.isgm>))
+		return 0
+	else
+		src.targetf f_static_add_list 3
+		src.message @,,1 Select player to ban.
+		return 1
+	endif
+
+ON=Place trashcan*
+	src.f_static_place_trashcan
+
+ON=Remove trashcan*
+	ref1=<room.tag0.sign>
+	if !((<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.f_static_isfriend <ref1>>) || (<src.isgm>))
+		return 0
+	else
+		if (<ref1.tag0.trashcan>)
+			try uid.<ref1.tag0.trashcan>.remove
+			ref1.tag.trashcan =
+			src.sysmessage @,,1 The trash can has been removed.
+		else
+			src.sysmessage @33,,1 You have no trashcan to remove.
+		endif
+		return 1
+	endif
+
+ON=commands*
+	src.f_resenddialog d_static_hs_commands
+
+[EOF]

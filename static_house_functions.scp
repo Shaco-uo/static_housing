@@ -1,0 +1,782 @@
+[FUNCTION fff]
+targetf fct
+
+[FUNCTION fct]
+ref1=<room.tag0.sign>
+serv.log <serv.list.static_hs_<ref1>_ban.0> <uid.<serv.list.static_hs_<ref1>_ban.0>.name>
+serv.list.static_hs_<ref1>_ban.add <argo>
+serv.log <serv.list.static_hs_<ref1>_ban.0> <uid.<serv.list.static_hs_<ref1>_ban.0>.name>
+
+
+
+[FUNCTION static_house_total]
+local.hs=<serv.list.chardata_<uid>.11>
+if <isempty <local.hs>>
+	return 0
+elif <eval <local.hs>>==0
+	return 0
+else
+	args=<local.hs>
+	return <dargv>
+endif
+
+[FUNCTION f_addlist_static_house]
+ref1=<uid> // player
+ref2=<args> // sign
+local.count=<ref1.static_house_total>
+if !<local.count>
+	serv.list.chardata_<ref1>.11=<ref2>
+else
+	serv.list.chardata_<ref1>.11 = <serv.list.chardata_<ref1>.11>,<ref2>
+endif
+serv.list.static_hs_<ref2>.clear
+serv.list.static_hs_<ref2>.add=<ref1> // 0 owner
+serv.list.static_hs_<ref2>.add=<ref2.room.name> // 1 default name
+if <ref2.region.defname>==a_custom_market
+	serv.list.static_hs_<ref2>.add=<def.house_public> // 2 housetype
+else
+	serv.list.static_hs_<ref2>.add=<def.house_private> // 2 housetype
+endif
+serv.list.static_hs_<ref2>.add=0 // 3 lockdowns
+serv.list.static_hs_<ref2>.add=0 // 4 secure
+serv.list.static_hs_<ref2>.add=0 // 5 increased storage
+
+serv.list.static_hs_<ref2>.add=<ref2.room.flags> // 6 backup flags
+serv.list.static_hs_<ref2>.add=<ref2.room.events> // 7 backup events
+serv.list.static_hs_<ref2>.add=<ref2.room.dtag0.value> // 8 backup value
+for 1 5
+serv.list.static_hs_<ref2>.add=0 // empty
+endfor
+
+[FUNCTION f_removelist_static_house]
+ref1=<uid> // sign
+ref2=<serv.list.static_hs_<ref1>.0> // owner
+local.count=<ref2.static_house_total>
+local.name=<serv.list.static_hs_<ref1>.1>
+
+
+if !<local.count>
+elif <dlocal.count>==1
+	serv.list.chardata_<ref2>.11 = 0
+else
+	local.list=0
+	for 0 <eval <dlocal.count>-1>
+	ref3=<argv[<dlocal._for>]> // sign in list uid
+	if <ref3>==<ref1>
+	else
+		local.list .= ",<ref3>"
+	endif
+	endfor
+	serv.list.chardata_<ref2>.11 = <streat <local.list>>
+endif
+ref1.name=<local.name>
+ref1.room.name=<local.name>
+ref1.room.flags=<serv.list.static_hs_<ref1>.6>
+ref1.room.events=<serv.list.static_hs_<ref1>.7>
+// ref1.room.tag.value=<eval <serv.list.static_hs_<ref2>.8>>
+serv.list.static_hs_<ref1>.clear
+serv.list.static_hs_<ref1>_ban.clear
+serv.list.static_hs_<ref1>_access.clear
+serv.list.static_hs_<ref1>_coowners.clear
+serv.list.static_hs_<ref1>_friends.clear
+
+[FUNCTION f_static_reset_sign]
+ref1=<uid>
+ref1.color=0
+ref1.dispid=<ref1.id>
+ref1.tag.buildon=
+ref1.f_static_remove_allitems
+ref1.f_removelist_static_house
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[FUNCTION is_static_owner] // <src.is_static_owner <sign_uid>>
+ref1=<argv[0]>	// sign
+ref3=<serv.list.static_hs_<ref1>.0>
+if <argv[1]>	// player
+	ref2=<argv[1]>
+else
+	ref2=<uid>
+endif
+if <ref2.isgm>
+	return 1
+elif <ref3.isvalid> && <ref3>==<ref2>
+	return 1
+else
+	return 0
+endif
+
+[FUNCTION f_static_iscoowner] // (<GetCoownerPos <src>> >= 0)
+ref1=<argv[0]>
+if <argv[1]>
+	ref2=<argv[1]>
+else
+	ref2=<uid>
+endif
+if <serv.list.static_hs_<ref1>_coowners.findelem <ref2>> != -1
+	return 1
+endif
+return 0
+
+[FUNCTION f_static_isfriend]
+ref1=<argv[0]>
+if <argv[1]>
+	ref2=<argv[1]>
+else
+	ref2=<uid>
+endif
+if <serv.list.static_hs_<ref1>_friends.findelem <ref2>> != -1
+	return 1
+endif
+return 0
+
+[FUNCTION f_static_isaccess]
+ref1=<argv[0]>
+if <argv[1]>
+	ref2=<argv[1]>
+else
+	ref2=<uid>
+endif
+if <serv.list.static_hs_<ref1>_access.findelem <ref2>> != -1
+	return 1
+endif
+return 0
+
+[FUNCTION f_static_isban]
+ref1=<argv[0]>
+if <argv[1]>
+	ref2=<argv[1]>
+else
+	ref2=<uid>
+endif
+if <serv.list.static_hs_<ref1>_ban.findelem <ref2>> != -1
+	return 1
+endif
+return 0
+
+[FUNCTION is_house_locked]
+if <isevent.ei_house_lockdown> || <isevent.ei_house_secure>
+	return 1
+elif <isevent.ei_static_lockdown> || <isevent.ei_static_secure>
+	return 1
+else
+	return 0
+endif
+
+[FUNCTION fd_static_secure]
+ref1=<src.ctag0.hs_sign> // sign
+if !(<argo> && <argo.isitem>)
+	src.sysmessage @33,,1 Invalid Target.
+elif !(<argo.room> && <src.room>)
+	src.sysmessage @,,1 <argo.name> must be within the property.
+elif (<argo.room.defname>!=<ref1.room.defname>)
+	src.sysmessage @,,1 <argo.name> must be within the property.
+elif !(<src.is_static_owner <ref1>> || <src.isgm>)
+	src.sysmessage @33,,1 You can only modify items which are in your house.
+else
+	if (<argo.type>==t_door || <argo.type>==t_door_locked)
+		if (<argo.isevent.ei_static_door>)
+			src.ctag.secure=<argo>
+			src.f_resenddialog d_static_secure
+		else
+			src.sysmessage @33,,1 Invalid Door.
+		endif
+	elif (<argo.type>==t_telepad)
+		if <argo.isevent.ei_static_telepad>
+			src.ctag.secure=<argo>
+			src.f_resenddialog d_static_secure
+		else
+			src.sysmessage @33,,1 Invalid Teleporter.
+		endif
+	elif (<argo.f_isContainer>)
+		if (<argo.isevent.ei_static_secure>)
+			src.ctag.secure=<argo>
+			src.f_resenddialog d_static_secure
+		else
+			src.sysmessage @33,,1 You can only modify containers which are secured.
+		endif
+	else
+		src.sysmessage @33,,1 Invalid Target.
+	endif
+endif
+
+[FUNCTION fix_signs]
+forinstances i_sign_static_house
+if <istevent.t_static_house_sign>
+	if <tag0.forsale>
+		tag.forsale=
+		tag.forsale_new=1
+	endif
+endif
+endfor
+forinstances i_sign_static_house2
+if <istevent.t_static_house_sign>
+	if <tag0.forsale>
+		tag.forsale=
+		tag.forsale_new=1
+	endif
+endif
+endfor
+
+[FUNCTION f_sign_gethanger]
+targetf _sign_gethanger
+
+[FUNCTION _sign_gethanger]
+ref1=<argo> // sign
+ref1.sign_gethanger
+
+[FUNCTION sign_gethanger]
+ref1=<uid> // sign
+foritems 0
+if !(<ref1.attr>&010)
+elif !(<ref1.dispiddec> >= 2967 && <ref1.dispiddec> <= 2974)
+else
+	ref1.tag.sign_hanger=<uid>
+	ref1.color=70
+endif
+endfor
+
+
+
+
+
+[FUNCTION f_static_remove_allitems]	// ref1.f_static_remove_allitems
+ref1=<uid> // sign
+ref3=<serv.list.static_hs_<ref1>.0> // owner
+local.baseid=<ref1.baseid>
+foritems 50
+if !(<room>)
+elif (<room.defname>!=<ref1.room.defname>)
+elif (<uid>==<ref1>)
+elif (<uid>==<ref1.tag0.sign_hanger>)
+elif (<type>==t_door)
+	tag.access=
+	events=
+	cleartags
+	update
+elif (<type>==t_stone_guild)
+	p=<ref1.p>
+else
+	remove
+endif
+endfor
+
+
+[FUNCTION f_static_recode_doors]	// src.f_static_remove_allitems <room.uid>
+ref1=<uid>	// sign
+foritems 50
+if (<type> != t_door)
+elif !(<room> && <room.defname>==<ref1.room.defname>)
+else
+	events=+ei_static_door
+	tag.access=<def.house_access_owner>
+	resendtooltip 1,0
+endif
+endfor
+
+[FUNCTION f_static_get_priv]
+ref1=<argv[0]>	// player
+ref2=<argv[1]>	// sign
+if (<ref1.is_static_owner <ref2>>)
+	// serv.log F_STATIC_GET_PRIV owner <def.house_access_owner>
+	return <def.house_access_owner>
+elif (<ref1.f_static_iscoowner <ref2>>)
+	return <def.house_access_coowner>
+elif (<ref1.f_static_isfriend <ref2>>)
+	return <def.house_access_friend>
+elif (<ref2.tag0.is_guild>)
+	ref5=<ref2.tag0.is_guild>
+	if <ref5.isvalid>
+		return <def.house_access_guild>
+	endif
+endif
+return <def.house_access_none>
+
+
+[FUNCTION f_static_can_access]	// if (<src.f_static_can_access <room.tag.sign>,<uid>>)	// uid=container
+ref1=<argv[0]>	// sign
+ref2=<argv[1]>	// obj cont
+// if (<ref2.tag0.access>==<def.house_access_none>)
+	// return 1
+// endif
+if (<ref2.tag0.access>==<def.house_access_all> || <src.IsGM>)
+	return 1
+endif
+local.AccessLevel=<f_static_get_priv <src>,<ref1>>
+// serv.log F_STATIC_CAN_ACCESS <name> [<uid>] player access [<dlocal.AccessLevel>] in <ref1.name> sign [<ref1>], item <ref2.name> tag.access [<ref2.dtag0.access>]
+if (<dlocal.AccessLevel>==0)
+	return 0
+elif (<ref2.dtag0.access>==<def.house_access_friend>)
+	if (<dlocal.AccessLevel> <= <def.house_access_friend>)
+		return 1
+	endif
+elif (<ref2.dtag0.access>==<def.house_access_coowner>)
+	if (<dlocal.AccessLevel> <= <def.house_access_coowner>)
+		return 1
+	endif
+elif (<ref2.dtag0.access>==<def.house_access_owner>)
+	if (<dlocal.AccessLevel>==<def.house_access_owner>)
+		return 1
+	endif
+elif (<ref2.dtag0.access>==<def.house_access_guild>)
+	if ((<dlocal.AccessLevel>==<def.house_access_guild>))
+		return 1
+	endif
+endif
+return 0
+
+[FUNCTION f_static_tooltip_access]
+if (<tag0.access>==<def.house_access_owner>)
+	ADDCLILOC <ddef0.empty_cliloc>,Access <def.bfont_lyellow>Owner Only<def.bfont_white>
+elif (<tag0.access>==<def.house_access_coowner>)
+	ADDCLILOC <ddef0.empty_cliloc>,Access <def.bfont_lyellow>Co-Owners<def.bfont_white>
+elif (<tag0.access>==<def.house_access_friend>)
+	ADDCLILOC <ddef0.empty_cliloc>,Access <def.bfont_lyellow>Friends<def.bfont_white>
+elif (<tag0.access>==<def.house_access_guild>)
+	ref1=<tag0.is_guild>
+	if (<ref1.isvalid> && <ref1.type>==t_stone_guild)
+		ADDCLILOC <ddef0.empty_cliloc>,<def.bfont_lyellow><qval <ref1.abbrev>?[<ref1.abbrev>]:<ref1.name>><def.br>Guild Members Only<def.bfont_white>
+	endif
+else
+	ADDCLILOC <ddef0.empty_cliloc>,Free Access
+endif
+
+[FUNCTION f_static_msg_access]
+message @,,1 <name>
+if (<tag0.access>==<def.house_access_none>)
+	message @,,1 Security Lvl unspecified
+	return 1
+endif
+if (<tag0.access>==<def.house_access_owner>)
+	message @,,1 Owner Only
+elif (<tag0.access>==<def.house_access_coowner>)
+	message @,,1 Co-Owners Only
+elif (<tag0.access>==<def.house_access_friend>)
+	message @,,1 Friends Only
+elif (<tag0.access>==<def.house_access_guild>)
+	if <tag0.is_guild>
+		ref5=<tag0.is_guild>
+		if <ref5.isvalid>
+			local.abbrev=<qval <ISEMPTY <ref5.abbrev>>?[None]:<ref5.abbrev>>
+		endif
+	endif
+	message @,,1 [<local.abbrev>] Members Only
+endif
+
+[FUNCTION f_static_eject]
+if !(<argo> && <argo.isplayer>)
+	src.sysmessage @33,,1 Invalid Target.
+	return 1
+endif
+ref1=<src.ctag0.hs_sign> // sign
+ref2=<argo> // target
+if (<ref2>==<src>)
+	src.sysmessage @33,,1 You cannot eject yourself from this property.
+elif !(<ref1.room> && <ref2.room>)
+	src.sysmessage @33,,1 That person is not in your property.
+elif (<ref2.room.defname>!=<ref1.room.defname>)
+	src.sysmessage @33,,1 That person is not in your property.
+elif (<src.is_static_owner <ref1>,<ref2>>) || (<src.f_static_iscoowner <ref1>,<ref2>>) || (<src.f_static_isfriend <ref1>,<ref2>>) || (<ref2.IsGM>)
+	src.sysmessage @33,,1 You cannot eject person with this level of access.
+else
+	src.sysmessage @,,1 <ref2.name> has been ejected from the property.
+	if !<isempty <ref1.room.tag0.exit>>
+		ref2.go=<ref1.room.tag0.exit>
+	else
+		ref2.go=<ref1.p>
+	endif
+endif
+src.f_resenddialog d_static_house_menu
+
+
+
+[FUNCTION f_static_house_open]
+ref1=<uid> // sign
+foritems 50
+ref2=<uid>
+if !(<ref2.room> && <ref2.room.defname>==<ref1.room.defname>)
+elif !(<ref2.type>==t_door || <ref2.type>==t_door_locked || <ref2.type>==t_telepad)
+elif !(<ref2.tag0.access>)
+else
+	ref2.tag.access=
+endif
+endfor
+serv.list.static_hs_<ref1>.2=<def.house_public>
+serv.list.static_hs_<ref1>_ban.clear
+serv.list.static_hs_<ref1>_access.clear
+// serv.list.static_hs_<ref1>_coowners.clear
+// serv.list.static_hs_<ref1>_friends.clear
+
+[FUNCTION f_static_declare_guild]
+ref1=<args>	// sign
+if !(<argo>)
+	src.sysmessage @33,,1 Invalid Target.
+elif !(<argo.isitem>)
+	src.sysmessage @33,,1 Invalid Target.
+elif (<argo.type>!=t_stone_guild)
+	sysmessage @33,,1 A guildstone must be specified as the target.
+elif (<argo.room.defname>!=<ref1.room.defname>)
+	sysmessage @33,,1 Guildstone should be located in the region of the house.
+else
+	serv.list.static_hs_<ref1>.2=<def.house_guild>
+	ref1.tag.is_guild=<argo>
+	ref1.resendtooltip 1,0
+	src.sysmessage @,,1 All guild members now have access to this building.
+	if ((<def0.hs_door_acces_key>) && (<serv.AutoHouseKeys>)) // If keys are used, let the server check them.
+		src.sysmessage @,,1 Don't forget to set security level and lock the doors if areas are/need to be restricted.
+	else
+		src.sysmessage @,,1 Don't forget to set security level if areas are/need to be restricted.
+	endif
+endif
+
+[FUNCTION f_static_add_list]
+if !(<argo> && <argo.isplayer>)
+	src.sysmessage @33,,1 Invalid Target.
+	sdialog d_static_house_menu
+	return 1
+endif
+ref1=<src.ctag0.hs_sign> // sign
+ref2=<argo>
+local.opt=<args>
+if <ref2.isplayer>
+	if (<ref2>==<src>)
+		src.sysmessage @33,,1 You cannot add yourself to the list.
+	elif (<src.is_static_owner <ref1>,<ref2>>)
+		src.sysmessage @33,,1 <ref2.name> is the owner of this property.
+	elif (<src.f_static_iscoowner <ref1>,<ref2>>)
+		src.sysmessage @33,,1 <ref2.name> is already co-owner of this property, must be removed before adding <ref2.sex him/her> to another.
+	elif (<src.f_static_isfriend <ref1>,<ref2>>)
+		src.sysmessage @33,,1 <ref2.name> is already friend of this property, must be removed before adding <ref2.sex him/her> to another.
+	elif (<src.f_static_isaccess <ref1>,<ref2>>)
+		src.sysmessage @33,,1 <ref2.name> already exists on the <local.list> list, must be removed before adding <ref2.sex him/her> to another.
+	elif (<src.f_static_isban <ref1>,<ref2>>)
+		src.sysmessage @33,,1 <ref2.name> already exists on the bans list, must be removed before adding <ref2.sex him/her> to another.
+	elif (<dlocal.opt>==1)
+		local.count=<serv.list.static_hs_<ref1>_coowners.count>
+		if (<dlocal.count> < <ddef0.hs_max_co_owners>)
+			serv.list.static_hs_<ref1>_coowners.add <ref2>
+			src.sysmessage @1151,,1 <ref2.name> has been added as a Co-Owner for this property.
+			ref2.sysmessage @1151,,1 You have been made a Co-Owner for this property.
+		else
+			src.sysmessage @33,,1 You already have the maximum number of Co-Owners permitted for this property. (<ddef0.hs_max_co_owners>)
+			src.sysmessage @33,,1 Remove someone from the list and try again.
+		endif
+	elif (<dlocal.opt>==2)
+		local.count=<serv.list.static_hs_<ref1>_friends.count>
+		if (<dlocal.count> <= <ddef0.hs_max_friends>)
+			serv.list.static_hs_<ref1>_friends.add <ref2>
+			src.sysmessage @1151,,1 <ref2.name> has been added as a Friend for this property.
+			ref2.sysmessage @1151,,1 You have been made a Friend for this property.
+		else
+			src.sysmessage @33,,1 You already have the maximum number of Friends permitted for this property. (<ddef0.hs_max_friends>)
+			src.sysmessage @33,,1 Remove someone from the list and try again.
+		endif
+	elif (<dlocal.opt>==3)
+		local.count=<serv.list.static_hs_<ref1>_ban.count>
+		if (<dlocal.count> <= <ddef.hs_max_ban>)
+			serv.list.static_hs_<ref1>_ban.add <ref2>
+			src.sysmessage @33,,1 <ref2.name> has been banned from the property.
+			if (<ref2.room> && <ref2.room.defname>==<ref1.room.defname>)
+				ref2.trysrc <ref2> sysmessage @33,,1 You have been banned from this property.
+				if !<isempty <ref1.room.tag0.exit>>
+					ref2.go=<ref1.room.tag0.exit>
+				else
+					ref2.go=<ref1.p>
+				endif
+			endif
+		else
+			src.sysmessage @33,,1 Your Ban list is full.
+			src.sysmessage @33,,1 Remove someone from the list and try again.
+		endif
+	elif (<dlocal.opt>==4)
+		local.count=<serv.list.static_hs_<ref1>_access.count>
+		if (<dlocal.count> <= <ddef.hs_max_access>)
+			serv.list.static_hs_<ref1>_access.add <ref2>
+			src.sysmessage @1151,,1 <ref2.name> has been granted access to the property.
+			ref2.sysmessage @1151,,1 You have been granted access to the property.
+		else
+			src.sysmessage @33,,1 Your Access list is full.
+			src.sysmessage @33,,1 Remove someone from the list and try again.
+		endif
+	endif
+endif
+sdialog d_static_house_menu
+return 1
+
+[FUNCTION f_static_item_unlock]
+ref1=<room.tag0.sign>
+if !(<argo> && <argo.isitem>)
+elif !(<argo.room>)
+elif !((<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.f_static_isfriend <ref1>>) || (<src.isgm>)) // Double check to prevent players to get the target on their house and use it on another.
+elif (<argo.room.defname>!=<ref1.room.defname>)
+	src.sysmessage @33,,1 <argo.name> is not in the property.
+elif !(<argo.isevent.ei_static_secure> || <argo.isevent.ei_static_lockdown>)
+	src.sysmessage @33,,1 <argo.name> is not locked.
+else
+	if (<argo.isevent.ei_static_secure>)
+		if (<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.isgm>)
+			if !(<src.f_static_can_access <ref1>,<argo>>)
+				src.sysmessage @33,,1 You have no access privileges to <argo.name>.
+				return 1
+			endif
+			local.secured=<eval <serv.list.static_hs_<ref1>.4>-1>
+			serv.list.static_hs_<ref1>.4=<dlocal.secured>
+			argo.events=-ei_static_secure
+			argo.tag.access=
+			argo.message @,,2 501718 // No longer secure!
+		endif
+	elif (<argo.isevent.ei_static_lockdown>)
+		if (<src.f_static_isfriend <ref1>>) && (<argo.tag0.lockedby> != <src>)
+			src.sysmessage @33,,1 Friends can only unlock items locked by themselves.
+			return 1
+		endif
+		local.lockdowns=<eval <serv.list.static_hs_<ref1>.3>-1>
+		serv.list.static_hs_<ref1>.3=<dlocal.lockdowns>
+		argo.events=-ei_static_lockdown
+		argo.message @,,2 501726	// No longer locked down!
+		argo.tag.lockedby=
+	endif
+	if !(<isempty <argo.tag.old_attr>>)
+		argo.attr=<argo.tag0.old_attr>
+		argo.tag.old_attr=
+	else
+		argo.attr=
+	endif
+	if (<argo.attr>&attr_decay)
+		argo.timer=<eval(<serv.DecayTimer>*60)>
+	endif
+	argo.update
+	argo.resendtooltip 1,0
+	if (<src.isdialogopen.d_static_house_menu>)
+		src.f_resenddialog d_static_house_menu
+	endif
+endif
+
+
+[FUNCTION f_static_item_lock]
+ref1=<room.tag0.sign>
+if !(<argo> && <argo.isitem>)
+elif !(<argo.room>)
+	src.sysmessage @33,,1 <argo.name> is not in the property.
+elif (<argo.room.defname> != <ref1.room.defname>)
+	src.sysmessage @33,,1 <argo.name> is not in the property.
+elif <argo.cont>
+	src.sysmessage @,,1 You cannot lockdown items inside other containers.
+elif <argo.f_isContainer>
+	src.sysmessage @,,1 You cannot lockdown containers, use secure instead.
+elif <argo.isevent.ei_static_lockdown> || <argo.attr>&attr_move_never
+	argo.message @,,1 This is already locked down!
+elif <argo.isevent.t_house_addon> || <argo.istevent.t_remove_timer> || <argo.isevent.t_remove_timer> || <argo.tag0.enchant_timer> || <argo.isevent.ei_static_door> || <argo.type>==t_ethereal_mount // || <argo.istevent.t_plant_potted>
+	src.sysmessage @33,,1 Invalid Target.
+elif !((<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.f_static_isfriend <ref1>>) || (<src.isgm>)) // Double check to prevent players to get the target on their house and use it on another.
+else
+	if <def.hs_hs_secure_locks_limit>
+		local.lockdowns=<serv.list.static_hs_<ref1>.3>
+		local.secured=<serv.list.static_hs_<ref1>.4>
+		local.current_storage=<eval <dlocal.lockdowns>+<dlocal.secured>>
+		local.increasedstorage=<serv.list.static_hs_<ref1>.5>
+		if <dlocal.increasedstorage>!=0
+			local.max_lockdowns=<room.dtag0.maxlockdowns> + <muldiv <room.dtag0.maxlockdowns>,<dlocal.increasedstorage>,100>
+			local.max_storage=<room.dtag0.maxstorage> + <muldiv <room.dtag0.maxstorage>,<dlocal.increasedstorage>,100>
+		else
+			local.max_lockdowns=<room.dtag0.maxlockdowns>
+			local.max_storage=<room.dtag0.maxstorage>
+		endif
+		if (<dlocal.lockdowns> >= <dlocal.max_lockdowns>)
+			src.sysmessage @33,,1 Your house reached its lockdowns limit (<dlocal.max_lockdowns>).
+			return 1
+		elif (<dlocal.current_storage> >= <dlocal.max_storage>)
+			src.sysmessage @33,,1 Your house reached its storage limit (<dlocal.max_storage>).
+			return 1
+		endif
+		local.lockdowns ++
+		serv.list.static_hs_<ref1>.3=<dlocal.lockdowns>
+	endif
+	argo.tag.old_attr=<argo.attr>
+	argo.attr=010
+	argo.timer=-1
+	argo.events=+ei_static_lockdown
+	argo.message @,,2 501721 	// Locked down!
+	if (<src.f_static_isfriend <ref1>>)
+		argo.tag.lockedby=<src>
+	endif
+	argo.resendtooltip 1,0
+endif
+
+[FUNCTION f_static_item_secure]
+ref1=<room.tag0.sign>
+if !(<argo> && <argo.isitem>)
+elif !(<argo.room>)
+elif (<argo.room.defname>!=<ref1.room.defname>)
+	src.sysmessage @33,,1 <argo.name> is not in the property.
+elif (<argo.isevent.ei_static_secure>)
+	argo.message @,,1 This is already secured!
+elif (<argo.isevent.ei_static_door>) || (<argo.isevent.t_house_addon>)
+	src.sysmessage @33,,1 Invalid Target.
+elif !(<argo.f_isContainer>)
+	argo.message @,,2 501712		// This isn't a container!
+elif !((<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.isgm>)) // Double check to prevent players to get the target on their house and use it on another.
+	src.sysmessage @33,,1 Only owner and co-owner can secure items.
+else
+	if <def.hs_hs_secure_locks_limit>
+		local.lockdowns=<serv.list.static_hs_<ref1>.3>
+		local.secured=<serv.list.static_hs_<ref1>.4>
+		local.current_storage=<eval <dlocal.lockdowns>+<dlocal.secured>>
+		local.increasedstorage=<serv.list.static_hs_<ref1>.5>
+		if <dlocal.increasedstorage>!=0
+			local.max_secured=<eval <room.dtag0.maxsecured> + <muldiv <room.dtag0.maxsecured>,<dlocal.increasedstorage>,100>>
+			local.max_storage=<eval <room.dtag0.maxstorage> + <muldiv <room.dtag0.maxstorage>,<dlocal.increasedstorage>,100>>
+		else
+			local.max_secured=<room.dtag0.maxsecured>
+			local.max_storage=<room.dtag0.maxstorage>
+		endif
+		if (<dlocal.secured> >= <dlocal.max_secured>)
+			src.sysmessage @33,,1 Your house reached its secure container limit (<dlocal.max_secured>).
+			return 1
+		elif (<dlocal.current_storage> >= <dlocal.max_storage>)
+			src.sysmessage @33,,1 Your house reached its storage limit (<dlocal.max_storage>).
+			return 1
+		endif
+		local.secured ++
+		serv.list.static_hs_<ref1>.4=<dlocal.secured>
+		if <src.isdialogopen.d_static_house_menu>
+			src.f_resenddialog d_static_house_menu
+		endif
+	endif
+	argo.events +ei_static_secure
+	argo.tag.access=<f_static_get_priv <src>,<ref1>>
+	if <argo.attr>
+		argo.tag.old_attr=<argo.attr>
+	endif
+	argo.attr=010
+	argo.timer=-1
+	argo.message @,,2 501716	// Secure!
+	argo.resendtooltip 1
+endif
+
+[FUNCTION f_static_hs_buy_storage]
+ref1=<src.ctag0.hs_sign> //sign
+local.increasedstorage=<serv.list.static_hs_<ref1>.5>
+local.value=<args>
+if (<ref1.tag0.demolition>)
+	src.sysmessage @33,,1 This house is scheduled for demolition and cannot be upgraded.
+elif (<src.gold> < <dlocal.value>)
+	src.sysmessage @33,,1 You lack the funds to pay for this storage upgrade.
+else
+	src.gold -= <dlocal.value>
+	ref1.tag0.boughtstorage += <dlocal.value>
+	if (<dlocal.value>==<eval <ref1.room.dtag0.value>/8>)
+		local.storage=25
+	elif (<dlocal.value>==<eval <ref1.room.dtag0.value>/4>)
+		local.storage=50
+	elif (<dlocal.value>==<eval (<ref1.room.dtag0.value>/8)*3>)
+		local.storage=75
+	else
+		local.storage=100
+	endif
+	local.increasedstorage += <dlocal.storage>
+	serv.list.static_hs_<ref1>.5=<dlocal.increasedstorage>
+	src.sysmessage @,,1 <f_numformat <dlocal.value>> gp has been deducted from your bank to pay for this upgrade.
+endif
+src.f_resenddialog d_static_house_menu
+
+
+
+[FUNCTION f_static_place_trashcan]
+ref1=<src.room.tag0.sign>
+if (<src.is_static_owner <ref1>> || <src.f_static_iscoowner <ref1>> || <src.f_static_isfriend <ref1>> || <src.isgm>)
+	if (<ref1.tag0.trashcan>)
+		src.sysmessage @33,,1 You already have a trashcan.
+	else
+		serv.newitem=i_trashcan
+		new.p=<src.p>
+		new.attr=attr_move_never
+		ref1.tag0.trashcan=<new>
+	endif
+endif
+
+[FUNCTION f_static_remove_trashcan]
+ref1=<src.room.tag0.sign>
+if (<src.is_static_owner <ref1>> || <src.f_static_iscoowner <ref1>> || <src.f_static_isfriend <ref1>> || <src.isgm>)
+	if (<ref1.tag0.trashcan>)
+		try uid.<ref1.tag0.trashcan>.remove
+		ref1.tag.trashcan=
+	else
+		src.message @33,,1 You have no trashcan to remove.
+	endif
+endif
+
+
+[FUNCTION f_static_item_flip]
+ref1=<room.tag0.sign>
+ref2=<argo>	// target
+if !(<ref2.isvalid> && <ref2.isitem>)
+	src.sysmessage @33,,1 Invalid Target.
+elif (<ref2.room.defname>!=<ref1.room.defname>)
+	sysmessage @33,,1 Item should be located in the region of the house.
+elif !((<ref2.isevent.ei_static_lockdown>) || (<ref2.isevent.ei_static_secure>))
+	src.sysmessage @33,,1 You can only flip locked items.
+else
+	ref2.flip
+endif
+
+[FUNCTION f_static_movecheck]
+ref1=<room.tag0.sign>
+ref2=<args>	// target
+if !(<ref2.isvalid> && <ref2.isitem>)
+	return 1
+elif !(<ref2.room> && <ref1.room>)
+	return 1
+elif (<ref2.room.defname>!=<ref1.room.defname>)
+	src.sysmessage @33,,1 You cannot move items located outside the house.
+	return 1
+elif !((<ref2.isevent.ei_static_lockdown>) || (<ref2.isevent.ei_static_secure>))
+	src.sysmessage @33,,1 You can only move locked items.
+	return 1
+else
+	return 0
+endif
+
+[DEFNAME hs_speech_move_item]
+hs_speech_move_dir_n	0,-1,0
+hs_speech_move_dir_s	0,1,0
+hs_speech_move_dir_e	1,0,0
+hs_speech_move_dir_w	-1,0,0
+hs_speech_move_dir_se	1,1,0
+hs_speech_move_dir_sw	-1,1,0
+hs_speech_move_dir_ne	1,-1,0
+hs_speech_move_dir_nw	-1,-1,0
+
+[FUNCTION f_static_move_item]
+local.d=<args>
+if <f_static_movecheck <argo>>
+	return 1
+elif <isempty <def.hs_speech_move_dir_<local.d>>>
+	return 1
+else
+	ref1=<room.tag0.sign>
+	local.place=<argo.p>
+	local.dir=<def0.hs_speech_move_dir_<local.d>>
+	argo.move <local.dir>
+	if !(<argo.room> && <argo.room.defname>==<ref1.room.defname>)
+		argo.p=<local.place>
+		src.sysmessage @33,,1 You cannot move items outside the house site.
+	endif
+endif
+
+[EOF]
