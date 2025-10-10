@@ -14,7 +14,7 @@ gumppic <eval <dlocal.x>+7> <eval <dlocal.y>+9> 100						//brass sign gump
 [FUNCTION fd_static_house_menu_1] // INFORMATION
 local.value=<eval <ref1.room.dtag0.value>+<ref1.dtag0.boughtstorage>>
 dhtmlgump 118 225 364 20 0 0 <def.bfont_hs_title><def.bfont_size7><def.center><def.h3>Information
-button 470 222 22153 22155 1 0 1 // house commands
+button 470 222 22153 22155 1 0 2 // house commands
 
 dorigin 120 260
 dhtmlgump - - 250 20 0 0 <def.bfont_hs_text1>Owned by <def.bfont_hs_yellow><ref3.name>
