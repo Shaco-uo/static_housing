@@ -61,14 +61,14 @@ dhtmlgump - *20 100 20 0 0 <def.bfont_hs_text3>Property Value
 dhtmlgump +100 - 120 20 0 0 <def.bfont_hs_text1><f_numformat <QVAL (<ref1.tag0.forsale>)?<ref1.dtag0.price>:<dlocal.value>>> gp
 
 if <ref1.tag0.forsale>
-	dhtmlgump 120 443 320 20 0 0 <def.bfont_hs_text1>This house is currently for sale <def.bfont_hs_text3>(<f_numformat <ref2.dtag0.price>> gp)
-	dorigin 320 440
+	dhtmlgump 120 423 320 20 0 0 <def.bfont_hs_text1>This house is currently for sale <def.bfont_hs_text3>(<f_numformat <ref1.dtag0.price>> gp)
+	dorigin 120 444
 	if (<src.is_static_owner <ref1>>)
-		gumppic - - <strarg <def0.dlg_btn1_60x25>> 998
-		dhtmlgump  - +3 62 20 0 0 <def.bfont_hs_text3><def.center>Buy
+		gumppic - - 4005 998
+		dhtmlgump +14 - 62 20 0 0 <def.bfont_hs_text3><def.center>Buy
 	else
-		button - - <def0.dlg_btn1_60x25> 1 0 1 // buy property
-		dhtmlgump  - +3 62 20 0 0 <def.bfont_hs_text1><def.center>Buy
+		button - - 4005 4007 1 0 1 // buy property
+		dhtmlgump +14 - 62 20 0 0 <def.bfont_hs_text1><def.center>Buy
 	endif
 	// if <ref1.more2>
 	// 	dhtmlgump - *20 120 20 0 0 <def.bfont_hs_text3>Visit Count

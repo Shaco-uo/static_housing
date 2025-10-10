@@ -269,9 +269,12 @@ endfor
 [FUNCTION f_static_recode_doors]	// src.f_static_remove_allitems <room.uid>
 ref1=<uid>	// sign
 foritems 50
-if (<type> != t_door)
+if !(<type>==t_door || <type>==t_door_locked)
 elif !(<room> && <room.defname>==<ref1.room.defname>)
 else
+	if (<type>!=t_door_locked)
+		type=t_door
+	endif
 	events=+ei_static_door
 	tag.access=<def.house_access_owner>
 	resendtooltip 1,0
