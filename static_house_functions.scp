@@ -1,6 +1,7 @@
 [FUNCTION static_house_total]
-local.hs=<serv.list.chardata_<uid>.11>
-if <isempty <local.hs>>
+local.hs=<tag0.static_houses>
+// local.hs=<serv.list.chardata_<uid>.11>
+if <isempty <tag.static_houses>>
 	return 0
 elif <eval <local.hs>>==0
 	return 0
@@ -14,9 +15,11 @@ ref1=<uid> // player
 ref2=<args> // sign
 local.count=<ref1.static_house_total>
 if !<local.count>
-	serv.list.chardata_<ref1>.11=<ref2>
+	ref1.tag.static_houses=<ref2>
+	// serv.list.chardata_<ref1>.11=<ref2>
 else
-	serv.list.chardata_<ref1>.11 = <serv.list.chardata_<ref1>.11>,<ref2>
+	ref1.tag.static_houses = <ref1.tag0.static_houses>,<ref2>
+	// serv.list.chardata_<ref1>.11 = <serv.list.chardata_<ref1>.11>,<ref2>
 endif
 serv.list.static_hs_<ref2>.clear
 serv.list.static_hs_<ref2>.add=<ref1> // 0 owner
@@ -72,26 +75,12 @@ serv.list.static_hs_<ref1>_friends.clear
 [FUNCTION f_static_reset_sign]
 ref1=<uid>
 ref1.color=0
-ref1.dispid=<ref1.id>
+ref1.dispid=<id>
 ref1.tag.buildon=
 ref1.f_static_remove_allitems
 ref1.f_removelist_static_house
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+ref1.tag.forsale_new=1
+ref1.resendtooltip 1,0
 
 
 [FUNCTION is_static_owner] // <src.is_static_owner <sign_uid>>
