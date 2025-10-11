@@ -80,7 +80,7 @@ else
 		return 1
 	endif
 endif
-serv.log @3,0,0 pressed <dargn1>
+// serv.log @3,0,0 pressed <dargn1>
 
 [DIALOG d_static_hs_commands button]
 on=1 16
@@ -218,10 +218,8 @@ ON=1
 	ref1.room.events=+r_static_house_system
 	ref1.room.flags=region_flag_nodecay|region_flag_nobuilding|region_antimagic_recall_in|region_flag_insta_logout
 	if <def.hs_can_decay>
-		ref1.attr = 02|010
 		ref1.timer = 60*60*24*<ddef0.hs_can_decay>
 	else
-		ref1.attr = 010
 		ref1.timer = -1
 	endif
 	ref1.f_static_recode_doors

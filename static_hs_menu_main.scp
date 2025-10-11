@@ -104,7 +104,7 @@ endif
 
 [DIALOG d_static_house_menu prebutton]
 src.dialogclose d_static_house_menu
-serv.log @2,0,0 Pressed <dargn1>
+// serv.log @2,0,0 Pressed <dargn1>
 ref1=<src.ctag0.hs_sign> // sign
 if !(<ref1.isvalid>)
 	return 1
@@ -536,12 +536,10 @@ on=6005 // property Removal
 		src.sysmessage @,,1 <ref3.name> was refunded <f_numformat <dlocal.total>> gp.
 	endif
 	ref1.f_static_reset_sign
-	ref1.tag.forsale_new=1
-	ref1.resendtooltip 1,0
 	src.sysmessage @,,1 The number of static houses you own is now <src.static_house_total>.
 	src.ctag.hs_sign=
 	src.ctag.hs_menu=
-
+	src.update
 
 on=6010 // PAY TAX
 	ref1=<src.ctag0.hs_sign> // sign

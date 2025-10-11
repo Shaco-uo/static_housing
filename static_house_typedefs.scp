@@ -33,11 +33,6 @@ On=@ClientTooltip
 On=@DClick
 	if !(<room>)
 		return 1
-	elif (<src.room.defname>!=<room.defname>)
-		if <distance> > 3
-			src.sysmessage @,,1 You can't reach the sign.
-			return 1
-		endif
 	endif
 	src.ctag.hs_sign=<uid>
 	if <tag0.forsale_new>
@@ -49,8 +44,10 @@ On=@DClick
 			src.f_resenddialog d_static_house_debug
 		endif
 	endif
-	
-	
+	return 1
+
+ON=@Timer
+	f_static_reset_sign
 	return 1
 
 On=@Destroy
@@ -62,11 +59,12 @@ On=@Destroy
 	endif
 
 
+
 [ITEMDEF i_sign_static_house]
 DEFNAME=i_sign_static_house
 ID=0bd1 //brass sign
 TYPE=T_SIGN_GUMP
-CAN=can_i_dcignorelos
+CAN=can_i_dcignorelos|can_i_dcignoredist
 TDATA2=064
 RESOURCES=2 i_board,1 i_ingot_iron
 TEVENTS=t_static_house_sign
@@ -82,7 +80,7 @@ On=@Create
 DEFNAME=i_sign_static_house2
 ID=0bd2	// //brass sign
 TYPE=T_SIGN_GUMP
-CAN=can_i_dcignorelos
+CAN=can_i_dcignorelos|can_i_dcignoredist
 TDATA2=064
 RESOURCES=2 i_board,1 i_ingot_iron
 TEVENTS=t_static_house_sign

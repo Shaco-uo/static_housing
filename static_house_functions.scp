@@ -1,6 +1,10 @@
+[DEFNAME static_housing]
+hs_static_amount_max	1 // max static buildings per player
+hs_static_store_crate	1 // 0=disabled. on removal use crate to store stuff instead of destroy.
+
 [FUNCTION static_house_total]
 local.hs=<tag0.static_houses>
-// local.hs=<serv.list.chardata_<uid>.11>
+// local.hs=<serv.list.chardata_<uid>.11> // custom
 if <isempty <tag.static_houses>>
 	return 0
 elif <eval <local.hs>>==0
@@ -16,10 +20,10 @@ ref2=<args> // sign
 local.count=<ref1.static_house_total>
 if !<local.count>
 	ref1.tag.static_houses=<ref2>
-	// serv.list.chardata_<ref1>.11=<ref2>
+	// serv.list.chardata_<ref1>.11=<ref2> // custom
 else
 	ref1.tag.static_houses = <ref1.tag0.static_houses>,<ref2>
-	// serv.list.chardata_<ref1>.11 = <serv.list.chardata_<ref1>.11>,<ref2>
+	// serv.list.chardata_<ref1>.11 = <serv.list.chardata_<ref1>.11>,<ref2> // custom
 endif
 serv.list.static_hs_<ref2>.clear
 serv.list.static_hs_<ref2>.add=<ref1> // 0 owner
@@ -32,24 +36,22 @@ endif
 serv.list.static_hs_<ref2>.add=0 // 3 lockdowns
 serv.list.static_hs_<ref2>.add=0 // 4 secure
 serv.list.static_hs_<ref2>.add=0 // 5 increased storage
-
 serv.list.static_hs_<ref2>.add=<ref2.room.flags> // 6 backup flags
 serv.list.static_hs_<ref2>.add=<ref2.room.events> // 7 backup events
 serv.list.static_hs_<ref2>.add=<ref2.room.dtag0.value> // 8 backup value
-for 1 5
-serv.list.static_hs_<ref2>.add=0 // empty
-endfor
+// for 1 5
+// 	serv.list.static_hs_<ref2>.add=0 // empty slots (for custom usage)
+// endfor
 
 [FUNCTION f_removelist_static_house]
 ref1=<uid> // sign
 ref2=<serv.list.static_hs_<ref1>.0> // owner
 local.count=<ref2.static_house_total>
 local.name=<serv.list.static_hs_<ref1>.1>
-
-
 if !<local.count>
 elif <dlocal.count>==1
-	serv.list.chardata_<ref2>.11 = 0
+	ref2.tag.static_houses=
+	// serv.list.chardata_<ref2>.11 = 0 // custom
 else
 	local.list=0
 	for 0 <eval <dlocal.count>-1>
@@ -59,13 +61,13 @@ else
 		local.list .= ",<ref3>"
 	endif
 	endfor
-	serv.list.chardata_<ref2>.11 = <streat <local.list>>
+	ref2.tag.static_houses= = <streat <local.list>>
+	// serv.list.chardata_<ref2>.11 = <streat <local.list>> // custom
 endif
 ref1.name=<local.name>
 ref1.room.name=<local.name>
 ref1.room.flags=<serv.list.static_hs_<ref1>.6>
 ref1.room.events=<serv.list.static_hs_<ref1>.7>
-// ref1.room.tag.value=<eval <serv.list.static_hs_<ref2>.8>>
 serv.list.static_hs_<ref1>.clear
 serv.list.static_hs_<ref1>_ban.clear
 serv.list.static_hs_<ref1>_access.clear
@@ -77,10 +79,89 @@ ref1=<uid>
 ref1.color=0
 ref1.dispid=<id>
 ref1.tag.buildon=
-ref1.f_static_remove_allitems
+if <ddef0.hs_static_store_crate>==1
+	ref1.f_static_crate_allitems
+else
+	ref1.f_static_remove_allitems
+endif
 ref1.f_removelist_static_house
 ref1.tag.forsale_new=1
 ref1.resendtooltip 1,0
+
+[FUNCTION f_static_remove_allitems]	// ref1.f_static_remove_allitems
+ref1=<uid> // sign
+ref3=<serv.list.static_hs_<ref1>.0> // owner
+local.baseid=<ref1.baseid>
+foritems 100
+if !(<room>)
+elif (<room.defname>!=<ref1.room.defname>)
+elif (<uid>==<ref1>)
+elif (<uid>==<ref1.tag0.sign_hanger>)
+elif (<type>==t_stone_guild)
+	p=<qval <isempty <ref1.room.tag.exit>>?<ref1.p>:<ref1.room.tag0.exit>>
+elif (<type>==t_door)
+	tag.access=
+	events=
+	update
+else
+	remove
+endif
+endfor
+
+
+[FUNCTION f_static_crate_allitems]	// ref2.f_static_crate_allitems
+ref1=<uid> // sign
+ref2=<serv.list.static_hs_<ref1>.0> // owner
+local.x=30
+serv.newitem=i_crate_lg,1,<ref2.findlayer.29>
+new.contp=<dlocal.x>,30
+ref3=<new>
+foritems 100
+if !(<room>)
+elif (<room.defname>!=<ref1.room.defname>)
+elif (<uid>==<ref1>)
+elif (<uid>==<ref1.tag0.sign_hanger>)
+elif (<type>==t_stone_guild)
+	p=<qval <isempty <ref1.room.tag.exit>>?<ref1.p>:<ref1.room.tag0.exit>>
+elif (<type>==t_door)
+	tag.access=
+	events=-ei_static_door
+	update
+else
+	if (<isevent.ei_static_secure>)
+		attr &=~ 010
+		events=-ei_static_secure
+		tag.access=
+	elif (<isevent.ei_static_lockdown>)
+		attr &=~ 010
+		events=-ei_static_lockdown
+		tag.lockedby=
+	endif
+	if !(<isempty <tag.old_attr>>)
+		attr=<tag0.old_attr>
+		tag.old_attr=
+	endif
+	if (<attr>&010)
+		if !(<isempty <tag.deed>>) // custom house addons
+			serv.newitem=<tag0.deed>,1,<ref3>
+			local.c ++
+		endif
+		remove // remove non movable items
+	else
+		local.c ++
+		cont=<ref3>
+	endif
+	if (<ref3.rescount> >= 250)
+		local.x += 30
+		serv.newitem=i_crate_lg,1,<ref2.findlayer.29>
+		new.contp=<dlocal.x>,30
+		ref3=<new>
+	endif
+endif
+endfor
+if !(<local.c>)
+	ref3.remove
+endif
 
 
 [FUNCTION is_static_owner] // <src.is_static_owner <sign_uid>>
@@ -233,26 +314,7 @@ endfor
 
 
 
-[FUNCTION f_static_remove_allitems]	// ref1.f_static_remove_allitems
-ref1=<uid> // sign
-ref3=<serv.list.static_hs_<ref1>.0> // owner
-local.baseid=<ref1.baseid>
-foritems 50
-if !(<room>)
-elif (<room.defname>!=<ref1.room.defname>)
-elif (<uid>==<ref1>)
-elif (<uid>==<ref1.tag0.sign_hanger>)
-elif (<type>==t_door)
-	tag.access=
-	events=
-	cleartags
-	update
-elif (<type>==t_stone_guild)
-	p=<ref1.p>
-else
-	remove
-endif
-endfor
+
 
 
 [FUNCTION f_static_recode_doors]	// src.f_static_remove_allitems <room.uid>

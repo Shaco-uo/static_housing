@@ -41,7 +41,7 @@ if <def.hs_can_decay>
 			dhtmlgump - *30 360 40 0 0 <def.bfont_hs_text3>This property <QVAL (<ref1.tag0.demolition>)? will be demolished:will decay> In<def.br><f_time_format <ref1.timer>>.
 		else
 			dhtmlgump - *20 368 20 0 0 <def.bfont_hs_text3>Property Tax for this building is <def.bfont_hs_text2><f_numformat <dlocal.maint>><def.bfont_hs_text3> gp
-			dhtmlgump - *20 360 50 0 0 <def.bfont_hs_text3>every <def.bfont_hs_text2><ddef.hs_can_decay><def.bfont_hs_text3> days, covered for <def.bfont_hs_text2><f_time_format <ref1.timer>>.
+			dhtmlgump - *20 360 50 0 0 <def.bfont_hs_text3>every <def.bfont_hs_text2><ddef0.hs_can_decay><def.bfont_hs_text3> days, covered for <def.bfont_hs_text2><f_time_format <ref1.timer>>.
 		endif
 	endif
 else
@@ -401,86 +401,86 @@ button -34 - 4005 4007 1 0 4400 // clear list
 
 [FUNCTION fd_static_house_menu_30] // PROPERTY TAX
 local.h=<ref3.static_house_total>
-dhtmlgump 118 225 350 20 0 0 <def.bfont_hs_title><def.bfont_size7><def.center>Property Tax
+dhtmlgump 118 225 360 20 0 0 <def.bfont_hs_title><def.bfont_size7><def.center>Property Tax
 button 118 224 9910 9909 1 0 20005 // OWNERSHIP
-if (<src.isgm>)
-	dhtmlgump 118 340 360 20 0 0 <def.bfont_hs_title><def.bfont_size7><def.center>Staff Override
-	dhtmlgump 144 440 360 20 0 0 <def.bfont_hs_text3>Reset decay timer to <def.bfont_hs_text2><ddef.hs_can_decay><def.bfont_hs_text3> days
-	button 117 440 4005 4007 1 0 6010
+
+if (<ref1.tag0.decay_exempt>==1)
+	dorigin 118 260
+	dhtmlgump - - 350 20 0 0 <def.bfont_hs_text3><def.center>This property has been made exempt from decay.
+	dhtmlgump - *20 350 20 0 0 <def.bfont_hs_text3><def.center>If this house is put for sale or made into
+	dhtmlgump - *20 350 20 0 0 <def.bfont_hs_text3><def.center>public, exemption will be lost.
 else
-	if (<ref1.tag0.decay_exempt>==1)
-		dhtmlgump 120 280 360 20 0 0 <def.bfont_hs_text3>This property has been made exempt from decay.
-		dhtmlgump 120 300 360 20 0 0 <def.bfont_hs_text3>As such you have no Property Tax to pay.
-		dhtmlgump 120 320 360 20 0 0 <def.bfont_hs_text3>This exemption is reflected on the main page of this menu.
-		dhtmlgump 120 360 360 20 0 0 <def.bfont_hs_text3>If this house is put for sale or moved the exemption will be lost.
-	else
-		local.daysleft=<eval(((<ref1.timer>/60)/60)/24)>
-		local.days=<eval(<ddef.hs_can_decay>-<dlocal.daysleft>)>
-		local.value=<eval <ref1.room.dtag0.value>+<ref1.dtag0.boughtstorage>>
-		if <def.hs_estate_tax>
-			if <local.h>
-				local.houses=<dlocal.h>+1	// add the static one to tax
-				if (<local.houses> > <ddef.hs_estate_tax>)
-					dhtmlgump 118 310 360 20 0 0 <def.bfont_hs_red><def.center>Estate Tax applies for <def.bfont_hs_text2><eval(<local.houses>-<ddef.hs_estate_tax>)><def.bfont_hs_red> house(s)
-					dhtmlgump 280 380 240 20 0 0 <def.bfont_hs_red>PLUS
-					if (<ddef.hs_estate_calc>==1)
-						dhtmlgump 118 400 370 34 0 0 <def.bfont_hs_text3><def.center>Additional <def.bfont_hs_text2><qval <ref1.room.tag0.maintenance_override>?<ref1.room.dtag0.maintenance_override>:<ddef.hs_estate_rate>><def.bfont_hs_text3>% of house value (flat rate)
-						if <ref1.room.tag0.maintenance_override>
-							local.rate=<eval(<ref1.room.dtag0.maintenance_override>*2)>
-							local.maint=<MULDIV <dlocal.value>,<dlocal.rate>,100>
-						else
-							local.rate=<eval <ddef0.hs_property_tax>+<ddef.hs_estate_rate>>
-							local.maint=<MULDIV <dlocal.value>,<dlocal.rate>,100>
-						endif
-					elseif (<ddef.hs_estate_calc>==2)
-						dhtmlgump 124 400 350 34 0 0 <def.bfont_hs_text3><def.center>Additional <def.bfont_hs_text2><qval <ref1.room.tag0.maintenance_override>?<ref1.room.dtag0.maintenance_override>:<ddef.hs_estate_rate>><def.bfont_hs_text3>% house value
-						dhtmlgump 124 420 350 20 0 0 <def.bfont_hs_text3><def.center>for each house over standard allowance [<def.bfont_hs_text2><eval(<local.houses> - <ddef.hs_estate_tax>)><def.bfont_hs_text3>] qts.
-						local.overage=<eval(<local.houses>-<ddef.hs_estate_tax>)>
-						if <ref1.room.tag0.maintenance_override>
-							local.rate=<eval(<ref1.room.dtag0.maintenance_override>*<dlocal.overage>)>
-							local.rate=<eval(<local.rate>+<ref1.room.dtag0.maintenance_override>)>
-							local.maint=<MULDIV <dlocal.value>,<dlocal.rate>,100>
-						else
-							local.rate=<eval(<ddef.hs_estate_rate>*<dlocal.overage>)>
-							local.rate=<eval(<local.rate>+<def.hs_property_tax>)>
-							local.maint=<MULDIV <dlocal.value>,<dlocal.rate>,100>
-						endif
-					endif
-				else
+	local.daysleft=<eval(((<ref1.timer>/60)/60)/24)>
+	local.days=<eval(<ddef0.hs_can_decay>-<dlocal.daysleft>)>
+	local.value=<eval <ref1.room.dtag0.value>+<ref1.dtag0.boughtstorage>>
+	if <def.hs_estate_tax>
+		if <local.h>
+			local.houses=<eval <dlocal.h>+1>	// add the static one to tax
+			if (<dlocal.houses> > <ddef0.hs_estate_tax>)
+				dhtmlgump 118 300 350 20 0 0 <def.bfont_hs_red><def.center>Estate Tax applies for <def.bfont_hs_text2><eval(<dlocal.houses>-<ddef0.hs_estate_tax>)><def.bfont_hs_red> buildings
+				if (<ddef0.hs_estate_calc>==1)
+					dhtmlgump 118 320 370 34 0 0 <def.bfont_hs_text3><def.center>Additional <def.bfont_hs_text2><qval <ref1.room.tag0.maintenance_override>?<ref1.room.dtag0.maintenance_override>:<ddef0.hs_estate_rate>><def.bfont_hs_text3>% of house value (flat rate)
 					if <ref1.room.tag0.maintenance_override>
-						local.maint=<MULDIV <dlocal.value>,<ref1.room.tag0.maintenance_override>,100>
+						local.rate=<eval(<ref1.room.dtag0.maintenance_override>*2)>
+						local.maint=<MULDIV <dlocal.value>,<dlocal.rate>,100>
 					else
-						local.maint=<MULDIV <dlocal.value>,<ddef0.hs_property_tax>,100>
+						local.rate=<eval <ddef0.hs_property_tax>+<ddef0.hs_estate_rate>>
+						local.maint=<MULDIV <dlocal.value>,<dlocal.rate>,100>
+					endif
+				elif (<ddef0.hs_estate_calc>==2)
+					dhtmlgump 118 320 350 20 0 0 <def.bfont_hs_text3><def.center>Additional <def.bfont_hs_text2><qval <ref1.room.tag0.maintenance_override>?<ref1.room.dtag0.maintenance_override>:<ddef0.hs_estate_rate>><def.bfont_hs_text3>% house value for each
+					dhtmlgump 118 340 350 20 0 0 <def.bfont_hs_text3><def.center>house over standard allowance [<def.bfont_hs_text2><eval(<dlocal.houses> - <ddef0.hs_estate_tax>)><def.bfont_hs_text3>].
+					local.overage=<eval(<dlocal.houses>-<ddef0.hs_estate_tax>)>
+					if <ref1.room.tag0.maintenance_override>
+						local.rate=<eval(<ref1.room.dtag0.maintenance_override>*<dlocal.overage>)>
+						local.rate=<eval(<local.rate>+<ref1.room.dtag0.maintenance_override>)>
+						local.maint=<MULDIV <dlocal.value>,<dlocal.rate>,100>
+					else
+						local.rate=<eval(<ddef0.hs_estate_rate>*<dlocal.overage>)>
+						local.rate=<eval(<local.rate>+<def.hs_property_tax>)>
+						local.maint=<MULDIV <dlocal.value>,<dlocal.rate>,100>
 					endif
 				endif
-			endif
-		else
-			if <ref1.room.tag0.maintenance_override>
-				local.maint=<MULDIV <dlocal.value>,<ref1.room.tag0.maintenance_override>,100>
 			else
-				local.maint=<MULDIV <dlocal.value>,<ddef0.hs_property_tax>,100>
+				if <ref1.room.tag0.maintenance_override>
+					local.maint=<MULDIV <dlocal.value>,<ref1.room.tag0.maintenance_override>,100>
+				else
+					local.maint=<MULDIV <dlocal.value>,<ddef0.hs_property_tax>,100>
+				endif
 			endif
 		endif
-		local.maintenance=<eval(<local.maint>/30)>
-		local.maintpay=<eval(<dlocal.maintenance>*<dlocal.days>)>
-		dhtmlgump 118 260 370 20 0 0 <def.bfont_hs_text3><def.center>Reset your house's decay timer to <def.bfont_hs_text2><ddef.hs_can_decay><def.bfont_hs_text3> days.
-		dhtmlgump 118 280 370 20 0 0 <def.bfont_hs_text3><def.center>Property Tax may be paid whenever any is due.
-		dhtmlgump 118 340 370 20 0 0 <def.bfont_hs_text3><def.center>The price of your Property Tax per <def.bfont_hs_text2><ddef.hs_can_decay><def.bfont_hs_text3> days
-		// dhtmlgump 118 360 370 20 0 0 <def.bfont_hs_text3><def.center>Property Tax for this house is <def.bfont_hs_text2><qval <ref1.room.tag0.maintenance_override>? <ref1.room.dtag0.maintenance_override>:<ddef0.hs_property_tax>><def.bfont_hs_text3>% of <qval <ref1.room.tag0.maintenance_override>? House Value [<ref1.room.name> rate]:House Value (<def.bfont_hs_text2><dlocal.maint><def.bfont_hs_text3>)>
-		
-		dhtmlgump 118 360 370 40 0 0 <def.bfont_hs_text3><def.center>Property Tax for this house is <def.bfont_hs_text2><qval <ref1.room.tag0.maintenance_override>? <ref1.room.dtag0.maintenance_override>:<ddef0.hs_property_tax>><def.bfont_hs_text3>%
-		dhtmlgump 118 380 370 40 0 0 <def.bfont_hs_text3><def.center>of <qval <ref1.room.tag0.maintenance_override>? House Value [<f_numformat <ref1.room.tag0.maintenance_override>>]:House Value [<def.bfont_hs_text2><f_numformat <dlocal.maint>><def.bfont_hs_text3>]>
-
-		if (<local.daysleft> < <eval(<def.hs_can_decay>-1)>)
-			if <def.hs_can_decay> && <def.hs_property_tax>
-				dhtmlgump 118 440 370 20 0 0 <def.bfont_hs_text3><def.center>Pay <def.bfont_hs_text2><f_numformat <dlocal.maintpay>><def.bfont_hs_text3> gp to add <def.bfont_hs_text2><dlocal.days><def.bfont_hs_text3> days
-				button 176 440 4005 4007 1 0 6010
-			endif
+	else
+		if <ref1.room.tag0.maintenance_override>
+			local.maint=<MULDIV <dlocal.value>,<ref1.room.dtag0.maintenance_override>,100>
 		else
-			dhtmlgump 118 440 370 20 0 0 <def.bfont_hs_text2><def.center>No Property Tax is due on this building.
+			local.maint=<MULDIV <dlocal.value>,<ddef0.hs_property_tax>,100>
 		endif
 	endif
+	local.maintenance=<eval(<local.maint>/30)>
+	local.maintpay=<eval(<dlocal.maintenance>*<dlocal.days>)>
+	dorigin 118 260
+	dhtmlgump - - 350 20 0 0 <def.bfont_hs_text3><def.center>Property Tax per <def.bfont_hs_text2><ddef0.hs_can_decay><def.bfont_hs_text3> days is <def.bfont_hs_text2><qval <ref1.room.tag0.maintenance_override>? <ref1.room.dtag0.maintenance_override>:<ddef0.hs_property_tax>><def.bfont_hs_text3>% of
+	dhtmlgump - *20 350 40 0 0 <def.bfont_hs_text3><def.center><qval <ref1.room.tag0.maintenance_override>? House Value [<f_numformat <ref1.room.tag0.maintenance_override>>]:House Value [<def.bfont_hs_text2><f_numformat <dlocal.maint>><def.bfont_hs_text3>]>.
+	
+	dhtmlgump - *88 350 20 0 0 <def.bfont_hs_text3><def.center>Reset the building decay timer to <def.bfont_hs_text2><ddef0.hs_can_decay><def.bfont_hs_text3> days.
+	dhtmlgump - *20 350 20 0 0 <def.bfont_hs_text3><def.center>Property Tax may be paid whenever any is due.
+	if (<local.daysleft> < <eval(<def.hs_can_decay>-1)>)
+		if <def.hs_can_decay> && <def.hs_property_tax>
+			dhtmlgump *100 *30 350 20 0 0 <def.bfont_hs_text3>Pay <def.bfont_hs_text2><f_numformat <dlocal.maintpay>><def.bfont_hs_text3> gp to add <def.bfont_hs_text2><dlocal.days><def.bfont_hs_text3> day<qval <dlocal.days> > 1?s:>
+			button -34 - 4005 4007 1 0 6010
+		endif
+		if (<src.isgm>)
+			dorigin 118 448
+			dhtmlgump - - 350 20 0 0 <def.bfont_hs_yellow><def.bfont_size7><def.center>Staff Override
+			dhtmlgump *100 *24 260 20 0 0 <def.bfont_hs_text3>Reset decay timer to <def.bfont_hs_text2><ddef0.hs_can_decay><def.bfont_hs_text3> days
+			button -34 - 4005 4007 1 0 6010
+		endif
+	else
+		dhtmlgump - *30 370 20 0 0 <def.bfont_hs_gray><def.center>No Property Tax is due on this building.
+	endif
 endif
+
+
 
 [FUNCTION fd_static_house_menu_31] // PROPERTY SELL
 dhtmlgump 118 225 350 20 0 0 <def.bfont_hs_title><def.bfont_size7><def.center>Property Sell
@@ -503,73 +503,28 @@ button 172 460 4023 4025 1 0 6003 // put for sale
 dhtmlgump 118 225 350 20 0 0 <def.bfont_hs_title><def.bfont_size7><def.center>Property Removal
 button 118 224 9910 9909 1 0 20005 // OWNERSHIP/back
 
-dorigin 260 336
-button - - <def0.dlg_btn2_60x25> 1 0 6005
-dhtmlgump - +3 62 20 0 0 <def.bfont_hs_red><def.center>Remove
+dorigin 280 336
+dhtmlgump - - 62 20 0 0 <def.bfont_hs_red>Remove
+button -34 - 4023 4025 1 0 6005
 
 dorigin 118 260
 dhtmlgump - - 350 20 0 0 <def.bfont_hs_red><def.center>!!! WARNING !!!
 dhtmlgump - *20 350 60 0 0 <def.bfont_hs_text1><def.center>You are about to remove this property
 dhtmlgump - *20 350 60 0 0 <def.bfont_hs_text1><def.center>Do you wish to proceed?
 
-
-// Removal
 dorigin 118 370
 local.total=<eval <ref1.room.dtag0.value>+<ref1.dtag0.boughtstorage>>
 if <def.hs_demolish_fee>
-	local.demolishfee=<muldiv <dlocal.total>,<ddef.hs_demolish_fee>,100>
+	local.demolishfee=<muldiv <dlocal.total>,<ddef0.hs_demolish_fee>,100>
 	local.total -= <dlocal.demolishfee>
 endif
-dhtmlgump - - 350 20 0 0 <def.bfont_hs_text1><def.center>Demolish & Destroy Contents
-dhtmlgump - *20 350 20 0 0 <def.bfont_hs_text3><def.center>Refund <def.bfont_hs_text2><f_numformat <dlocal.total>><def.bfont_hs_text3> gp
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+if <ddef0.hs_static_store_crate>==1
+	dhtmlgump - - 350 20 0 0 <def.bfont_hs_text1><def.center>Demolish & Box Contents
+	dhtmlgump - *20 350 20 0 0 <def.bfont_hs_text3><def.center>Refund <def.bfont_hs_text2><f_numformat <dlocal.total>><def.bfont_hs_text3> gp
+else
+	dhtmlgump - - 350 20 0 0 <def.bfont_hs_text1><def.center>Demolish & Destroy Contents
+	dhtmlgump - *20 350 20 0 0 <def.bfont_hs_text3><def.center>Refund <def.bfont_hs_text2><f_numformat <dlocal.total>><def.bfont_hs_text3> gp
+endif
 
 
 
