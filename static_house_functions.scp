@@ -40,7 +40,7 @@ serv.list.static_hs_<ref2>.add=<ref2.room.flags> // 6 backup flags
 serv.list.static_hs_<ref2>.add=<ref2.room.events> // 7 backup events
 serv.list.static_hs_<ref2>.add=<ref2.room.dtag0.value> // 8 backup value
 // for 1 5
-// 	serv.list.static_hs_<ref2>.add=0 // empty slots (for custom usage)
+// 	serv.list.static_hs_<ref2>.add=0 // empty slots (custom)
 // endfor
 
 [FUNCTION f_removelist_static_house]
@@ -311,22 +311,19 @@ endif
 endfor
 
 
-
-
-
-
-
-
-[FUNCTION f_static_recode_doors]	// src.f_static_remove_allitems <room.uid>
+[FUNCTION f_static_recode_access]
 ref1=<uid>	// sign
-foritems 50
-if !(<type>==t_door || <type>==t_door_locked)
-elif !(<room> && <room.defname>==<ref1.room.defname>)
-else
+foritems 100
+if !(<room> && <room.defname>==<ref1.room.defname>)
+elif (<type>==t_door || <type>==t_door_locked)
 	if (<type>!=t_door_locked)
 		type=t_door
 	endif
 	events=+ei_static_door
+	tag.access=<def.house_access_owner>
+	resendtooltip 1,0
+elif (<type>==t_telepad)
+	events=+ei_static_telepad
 	tag.access=<def.house_access_owner>
 	resendtooltip 1,0
 endif

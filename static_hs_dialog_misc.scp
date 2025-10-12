@@ -222,7 +222,7 @@ ON=1
 	else
 		ref1.timer = -1
 	endif
-	ref1.f_static_recode_doors
+	ref1.f_static_recode_access
 	src.events=+e_static_house_events
 	src.dspeech=+spk_static_cmds
 	if <local.gold>

@@ -156,7 +156,7 @@ on=1 // buy property
 		ref1.resendtooltip 1,0
 		src.events=+e_static_house_events
 		src.dspeech=+spk_static_cmds
-		ref1.f_static_recode_doors
+		ref1.f_static_recode_access
 		src.sysmessage @76,,1 You are the new owner of <ref1.name>, bought from <ref2.name> for <f_numformat <dlocal.gold>> gp.
 		src.ctag.hs_menu=
 	endif
@@ -203,7 +203,7 @@ ON=4100 // PRIVATE/PUBLIC TOGGLE
 			serv.list.static_hs_<ref1>_ban.clear
 		endif
 		src.sysmessage @42,,1 This propery is now private & may only be accessed by co-owners/friends & those on the access list
-		ref1.f_static_recode_doors
+		ref1.f_static_recode_access
 	endif
 	sdialog d_static_house_menu
 
@@ -474,7 +474,7 @@ on=6003 // sell Property
 	elif (<ref1.tag0.forsale>)
 		ref1.tag.forsale=
 		ref1.tag.price=
-		ref1.f_static_recode_doors
+		ref1.f_static_recode_access
 		src.sysmessage @,,1 You have taken this house off the market.
 		src.sysmessage @,,1 Don't forget to reset the house settings to your preferences.
 		sdialog d_static_house_menu
@@ -688,7 +688,7 @@ ON=20001 20005 // HEADER BUTTONS
 
 ON=20006
 	src.ctag0.dlg_bg ++
-	if <src.dctag0.dlg_bg>==<ddef0.dlg_bg_max>
+	if (<src.dctag0.dlg_bg>==<ddef0.dlg_bg_max>)
 		src.ctag.dlg_bg=
 	endif
 	sdialog d_static_house_menu
