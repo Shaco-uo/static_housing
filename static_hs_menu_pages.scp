@@ -255,7 +255,7 @@ if (<local.owner>)
 	else
 		dhtmlgump - *20 270 20 0 0 <def.bfont_hs_gray>Change House Sign Color
 	endif
-	if (<ref1.tag0.sign_hanger>) && (<def0.hs_allow_sign_hanger>)
+	if (<ref1.tag0.sign_hanger>) && (<def.hs_allow_sign_hanger>)
 		button -34 *20 4005 4007 1 0 7003
 		dhtmlgump - - 270 20 0 0 <def.bfont_hs_text1>Change House Sign Hanger
 	else

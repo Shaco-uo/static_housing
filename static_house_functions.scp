@@ -302,11 +302,11 @@ ref1.sign_gethanger
 [FUNCTION sign_gethanger]
 ref1=<uid> // sign
 foritems 0
-if !(<ref1.attr>&010)
-elif !(<ref1.dispiddec> >= 2967 && <ref1.dispiddec> <= 2974)
+if !(<attr>&010)
+elif !(<ref1.dispiddec> >= 2967 && <dispiddec> <= 2974)
 else
 	ref1.tag.sign_hanger=<uid>
-	ref1.color=70
+	ref1.sayu Hanger Set!
 endif
 endfor
 

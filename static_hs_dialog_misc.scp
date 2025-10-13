@@ -293,11 +293,11 @@ dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_title><dlocal.lockdowns> / <ref1.room.
 dhtmlgump - *20 120 20 0 0 <def.bfont_hs_gray>4. <def.bfont_hs_text1>Secured
 dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_title><dlocal.secured> / <ref1.room.dtag0.maxsecured>
 dhtmlgump - *20 130 20 0 0 <def.bfont_hs_gray>5. <def.bfont_hs_text1>Increased Storage
-dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_title><dlocal.increasedstorage>% total <dlocal.max_storage>
+dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_title><dlocal.increasedstorage>%
 dhtmlgump - *20 130 20 0 0 <def.bfont_hs_gray>6. <def.bfont_hs_text1>Vendors
 dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_title><dlocal.vendors> / <ref1.room.dtag0.maxvendors>
 dhtmlgump - *20 120 20 0 0 <def.bfont_hs_text1>Current Storage
-dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_title><dlocal.current_storage>  / <ref1.room.dtag0.maxstorage>
+dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_title><dlocal.current_storage> / <dlocal.max_storage>
 dhtmlgump - *20 120 20 0 0 <def.bfont_hs_text1>Coowner List
 dhtmlgump +136 - 260 20 0 0 <qval <serv.list.static_hs_<ref1>_coowners.count>==-1?<def.bfont_hs_gray>Empty:<def.bfont_hs_text2><serv.list.static_hs_<ref1>_coowners.count>>
 dhtmlgump - *20 120 20 0 0 <def.bfont_hs_text1>Friend List
