@@ -28,11 +28,11 @@ endif
 serv.list.static_hs_<ref2>.clear
 serv.list.static_hs_<ref2>.add=<ref1> // 0 owner
 serv.list.static_hs_<ref2>.add=<ref2.room.name> // 1 default name
-if <ref2.region.defname>==a_custom_market
-	serv.list.static_hs_<ref2>.add=<def.house_public> // 2 housetype
-else
+// if <ref2.region.defname>==a_custom_market // (custom)
+// 	serv.list.static_hs_<ref2>.add=<def.house_public> // 2 housetype
+// else
 	serv.list.static_hs_<ref2>.add=<def.house_private> // 2 housetype
-endif
+// endif
 serv.list.static_hs_<ref2>.add=0 // 3 lockdowns
 serv.list.static_hs_<ref2>.add=0 // 4 secure
 serv.list.static_hs_<ref2>.add=0 // 5 increased storage
