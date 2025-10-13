@@ -174,7 +174,7 @@ on=2
 ON=4100 // PRIVATE/PUBLIC TOGGLE
 	ref1=<src.ctag0.hs_sign> // sign
 	local.housetype=<serv.list.static_hs_<ref1>.2>
-	// if <ref1.region.defname>==a_custom_market
+	// if <ref1.region.defname>==a_custom_market // (custom)
 	// 	if (<local.housetype>!=<def.house_public>)
 	// 		serv.list.static_hs_<ref1>.2 = <def.house_public>
 	// 		ref1.room.flags &=~ region_flag_nodecay	// item decay
@@ -210,14 +210,14 @@ ON=4100 // PRIVATE/PUBLIC TOGGLE
 ON=4101 // GUILD HOUSE TOGGLE
 	ref1=<src.ctag0.hs_sign> // sign
 	local.housetype=<serv.list.static_hs_<ref1>.2>
-	if <ref1.region.defname>==a_custom_market
-		if (<local.housetype>!=<def.house_public>)
-			serv.list.static_hs_<ref1>.2 = <def.house_public>
-			ref1.room.flags &=~ region_flag_nodecay	// item decay
-			ref1.resendtooltip 1,0
-		endif
-		src.sysmessage @,,1 This property cannot convert into a guildhouse (Store).
-	elif (<local.housetype>==<def.house_guild>)
+	// if <ref1.region.defname>==a_custom_market // (custom)
+	// 	if (<local.housetype>!=<def.house_public>)
+	// 		serv.list.static_hs_<ref1>.2 = <def.house_public>
+	// 		ref1.room.flags &=~ region_flag_nodecay	// item decay
+	// 		ref1.resendtooltip 1,0
+	// 	endif
+	// 	src.sysmessage @,,1 This property cannot convert into a guildhouse (Store).
+	if (<local.housetype>==<def.house_guild>)
 		src.sysmessage @,,1 This property is no longer a guildhouse.
 		serv.list.static_hs_<ref1>.2 = <def.house_private>
 		ref1.tag.is_guild=
