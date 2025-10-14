@@ -35,14 +35,14 @@ On=@DClick
 		return 1
 	endif
 	src.ctag.hs_sign=<uid>
-	if (<src.is_static_owner <uid>> || <src.f_static_iscoowner <uid>> || <src.f_static_isfriend <uid>> || <src.isgm>)
+	if (<tag0.forsale_new>)
+		src.f_resenddialog d_static_forsale
+	elif (<src.is_static_owner <uid>> || <src.f_static_iscoowner <uid>> || <src.f_static_isfriend <uid>> || <src.isgm>)
 		src.ctag.hs_menu=1
 		if (<ddef0.hs_static_debug>==1 && <src.isgm>)	// gm debug
 			src.f_resenddialog d_static_house_debug
 		endif
 		src.f_resenddialog d_static_house_menu
-	elif (<tag0.forsale_new>)
-		src.f_resenddialog d_static_forsale
 	else
 		src.f_resenddialog <qval <tag0.forsale>?d_static_forsale:d_static_house_visitor>
 	endif
