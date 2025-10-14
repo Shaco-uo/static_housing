@@ -1,0 +1,140 @@
+[ITEMDEF i_static_hs_catalogue]
+DEFNAME=i_static_hs_catalogue
+ID=i_book_lg
+TYPE=t_normal
+FLIP=0
+NAME=Static Building Catalogue
+VALUE=20
+WEIGHT=1.0
+ON=@DClick
+	if (<topcont>!=<src.findlayer.21>)
+		src.sysmessage @,,1 The item must be on your backpack.
+	else
+		src.ctag.menu_page=
+		src.ctag.menu_val=
+		src.f_static_allsigns_list
+		src.f_resenddialog d_static_hs_catalogue
+	endif
+	return 1
+
+[DIALOG d_static_hs_catalogue]
+50,50
+local.count=<serv.list.temp_<src>.count>
+if !<local.count>
+	return 1
+endif
+if <isempty <src.ctag.menu_page>>
+	ctag.menu_page=1
+	ctag.menu_val=0 9
+endif
+page 0
+call fd_static_hs_catalogue_bg
+dorigin 150 138
+for <src.ctag0.menu_val>
+	if <dlocal._for> < <dlocal.count>
+		ref1=<serv.list.temp_<src>.<dlocal._for>>
+		local.maxstorage=<ref1.room.dtag0.maxstorage>
+		local.price=<ref1.room.dtag0.value>
+		dhtmlgump - *20 200 20 0 0 <def.bfont_hs_text1><ref1.room.name>
+		if <ref1.tag0.forsale_new>
+			button -34 - 4005 4007 1 0 <eval <dlocal._for>+100>
+		else
+			gumppic -34 - 4020 0
+			tooltip <ddef0.empty_cliloc>,@Sold
+		endif
+		dhtmlgump +212 +3 46 20 0 0 <def.bfont_hs_text3><def.center><f_numformat <dlocal.maxstorage>>
+		dhtmlgump +274 +3 46 20 0 0 <def.bfont_hs_text3><def.center><f_numformat <dlocal.price>>
+		dhtmlgump +350 +3 140 20 0 0 <def.bfont_hs_text3><ref1.region.name>
+	endif
+endfor
+
+[DIALOG d_static_hs_catalogue button]
+on=0
+on=100 5000
+	local.opt=<eval <argn1>-100>
+	ref1=<serv.list.temp_<src>.<dlocal.opt>>
+	src.sysmessage @1151,,1 Tracking <ref1.room.name> in <ref1.region.name> [<ref1.p>].
+	src.arrowquest 0,0,0
+	src.arrowquest <ref1.p.x>,<ref1.p.y>,0
+	if <src.isgm>
+		go=<ref1.p>
+	endif
+	sdialog d_static_hs_catalogue
+
+on=5001 5002
+	local.count=<serv.list.temp_<src>.count>
+	local.page_max=<eval ((<dlocal.count>-1)/10)+1>
+	if <dargn1>==5001 // back
+		src.ctag0.menu_page --
+		if <src.dctag0.menu_page> < 1
+			src.ctag.menu_page=<dlocal.page_max>
+		endif
+	else // next
+		src.ctag0.menu_page ++
+		if <src.dctag0.menu_page> > <dlocal.page_max>
+			src.ctag.menu_page=1
+		endif
+	endif
+	local.x=<eval ((<src.dctag0.menu_page>-1)*10)+1>
+	local.y=<eval <src.dctag0.menu_page>*10>
+	if <src.ctag0.menu_page>==<dlocal.page_max>
+		src.ctag0.menu_val=<dlocal.x> <dlocal.count>
+	else
+		src.ctag.menu_val=<dlocal.x> <dlocal.y>
+	endif
+	sdialog d_static_hs_catalogue
+
+
+[FUNCTION fd_static_hs_catalogue_bg]
+local.page_max=<eval ((<dlocal.count>-1)/10)+1>
+dorigin 100 100
+resizepic - - 5054 551 292
+gumppictiled *4 *6 540 20 2624
+checkertrans - - 540 20
+button +522 +2 22150 22152 1 0 0
+dhtmlgump - +1 540 20 0 0 <def.bfont_hs_yellow><def.center>STATIC BUILDINGS [<dlocal.count>]
+gumppictiled - *24 540 20 2624
+checkertrans - - 540 20
+dhtmlgump *54 *1 120 20 0 0 <def.bfont_hs_title>Property Name
+dhtmlgump *204 - 120 20 0 0 <def.bfont_hs_title>Storage
+dhtmlgump *70 - 120 20 0 0 <def.bfont_hs_title>Cost
+dhtmlgump *70 - 120 20 0 0 <def.bfont_hs_title>Region
+dorigin 104 154
+gumppictiled - - 540 210 2624
+checkertrans - - 540 210
+gumppictiled - *214 540 20 2624
+checkertrans - - 540 20
+dhtmlgump *20 *1 240 20 0 0 <def.bfont_hs_text3>Bank Balance <def.bfont_hs_text2><f_numformat <src.bankbalance>> <def.bfont_hs_text3>gp
+dhtmlgump +460 - 240 20 0 0 <def.bfont_hs_text3>Page <src.dctag0.menu_page>/<dlocal.page_max>
+if <dlocal.count> > 10
+	button 246 106 9910 9909 1 0 5001	// back
+	button 476 106 9904 9903 1 0 5002	// next
+endif
+
+[FUNCTION f_static_allsigns_list]
+ref1=<uid>
+serv.list.temp_<ref1>.clear
+if !(<ref1.isevent.e_temp_list>)
+	ref1.events=+e_temp_list
+endif
+forinstances i_sign_static_house
+	serv.list.temp_<ref1>.add=<uid>
+endfor
+forinstances i_sign_static_house2
+	serv.list.temp_<ref1>.add=<uid>
+endfor
+
+[EVENTS e_temp_list]
+ON=@Logout
+	serv.list.temp_<uid>.clear
+	events=-e_temp_list
+
+ON=@UserQuestArrowClick
+	if (<dargn1>==1)
+		arrowquest 0,0,0
+		return 1
+	endif
+
+
+[EOF]
+
