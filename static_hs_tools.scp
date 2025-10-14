@@ -11,8 +11,8 @@ ON=@Create
 	attr=010
 ON=@DClick
 	if (<distance> < 3)
-		ctag.menu_page=1
-		ctag.menu_val=1 10
+		src.ctag.menu_page=1
+		src.ctag.menu_val=1 10
 		src.f_static_allsigns_list
 		src.f_resenddialog d_static_hs_catalogue
 	endif
