@@ -2,7 +2,9 @@
 hs_static_amount_max	1 // max static buildings per player
 hs_static_store_crate	1 // 0=disabled. on removal use crate to store stuff instead of destroy.
 hs_static_debug			1 // enable debug options (GM)
+hs_static_remove_spawns	1 // 0=disabled. on buy, remove any spawn on room.
 empty_cliloc			1065706 // ~1_NOTHING~
+
 
 [FUNCTION static_house_total]
 local.hs=<tag0.static_houses>
@@ -121,6 +123,16 @@ ref1.tag.price=
 ref1.tag.decay_exempt=
 ref1.resendtooltip 1,0
 
+[FUNCTION f_static_remove_spawns]
+ref1=<uid> // sign
+foritems 100
+if !(<room>)
+elif (<room.defname>!=<ref1.room.defname>)
+elif !(<type>==t_spawn_char || <type>==t_spawn_item)
+else
+	remove
+endif
+
 [FUNCTION f_static_remove_allitems]	// ref1.f_static_remove_allitems
 ref1=<uid> // sign
 ref3=<serv.list.static_hs_<ref1>.0> // owner
@@ -237,6 +249,9 @@ else
 endif
 ref1.resendtooltip 1,0
 ref1.f_static_recode_access
+if <ddef0.hs_static_remove_spawns>==1
+	ref1.f_static_remove_spawns
+endif
 ref2.sysmessage @,,1 The number of static houses you own is <ref2.static_house_total>.
 if (<ref2.room> && <ref2.room.defname>==<ref1.room.defname>)
 	if !(<ref2.isevent.e_static_house_events>)
