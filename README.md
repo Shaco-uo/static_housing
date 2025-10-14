@@ -17,7 +17,7 @@ tag.maxlockdowns=200
 tag.maxsecured=80  
 tag.maxstorage=280  
 tag.maxvendors=1  
-tag.exit=1892,2847,20  
+tag.exit=1892,2847,20  // needed in case sign is located inside building. ejected & banned players will be kicked here (if empty will use sign location).
 tag.sign=04001bb4b  
 
 * Usage
