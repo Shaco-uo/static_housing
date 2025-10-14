@@ -220,9 +220,11 @@ ON=1 // buy from server
 		local.gold=<qval <ref1.tag0.forsale>?<ref1.dtag0.price>:<ref1.room.dtag0.value>>
 		if <src.gold> < <dlocal.gold>
 			src.sysmessage @,,1 You don't have enough gold to buy this property.
+			sdialog d_static_forsale
 			return 1
 		elif <src.static_house_total> > <ddef0.hs_static_amount_max>
 			src.sysmessage 33,,1 You cannot have more properties (Max <ddef0.hs_static_amount_max>).
+			sdialog d_static_forsale
 			return 1
 		endif
 		src.gold -= <dlocal.gold>
