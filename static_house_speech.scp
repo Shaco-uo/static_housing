@@ -179,6 +179,7 @@ ON=Remove trashcan*
 	endif
 
 ON=commands*
+	src.ctag.menu_page=1
 	src.f_resenddialog d_static_hs_commands
 
 [EOF]

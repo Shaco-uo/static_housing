@@ -124,6 +124,7 @@ on=1 // buy property
 	sdialog d_static_house_menu
 
 on=2
+	src.ctag.menu_page=1
 	src.f_resenddialog d_static_hs_commands
 	sdialog d_static_house_menu
 
