@@ -112,7 +112,7 @@ gumppictiled - - 540 210 2624
 checkertrans - - 540 210
 gumppictiled - *214 540 20 2624
 checkertrans - - 540 20
-dhtmlgump *20 *1 240 20 0 0 <def.bfont_hs_text3>Bank Balance <def.bfont_hs_text2><f_numformat <src.bankbalance>> <def.bfont_hs_text3>gp
+dhtmlgump *20 *1 240 20 0 0 <def.bfont_hs_text3>Total Gold <def.bfont_hs_text2><f_numformat <src.gold>> <def.bfont_hs_text3>gp
 dhtmlgump +456 - 240 20 0 0 <def.bfont_hs_text3>Page <src.dctag0.menu_page>/<dlocal.page_max>
 if <dlocal.count> > 10
 	button 246 106 9910 9909 1 0 5001	// back
