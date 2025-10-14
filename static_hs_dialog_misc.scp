@@ -242,6 +242,7 @@ ON=1 // buy from server
 		ref1.timer=-1
 	endif
 	ref1.f_static_recode_access
+	ref1.resendtooltip 1,0
 	if (<src.room> && <src.room.defname>==<ref1.room.defname>)
 		if !(<src.isevent.e_static_house_events>)
 			src.events=+e_static_house_events
