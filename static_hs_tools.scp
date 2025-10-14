@@ -11,8 +11,8 @@ ON=@Create
 	attr=010
 ON=@DClick
 	if (<distance> < 3)
-		src.ctag.menu_page=
-		src.ctag.menu_val=
+		ctag.menu_page=1
+		ctag.menu_val=1 10
 		src.f_static_allsigns_list
 		src.f_resenddialog d_static_hs_catalogue
 	endif
@@ -23,10 +23,6 @@ ON=@DClick
 local.count=<eval <serv.list.temp_<src>.count>-1>
 if !<local.count>
 	return 1
-endif
-if <isempty <src.ctag.menu_page>>
-	ctag.menu_page=1
-	ctag.menu_val=1 10
 endif
 page 0
 call fd_static_hs_catalogue_bg
