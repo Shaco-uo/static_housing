@@ -34,16 +34,20 @@ for <src.ctag0.menu_val>
 	if <dlocal._for> < <dlocal.count>
 		ref1=<serv.list.temp_<src>.<dlocal._for>>
 		local.maxstorage=<ref1.room.dtag0.maxstorage>
-		local.price=<ref1.room.dtag0.value>
 		dhtmlgump - *20 200 20 0 0 <def.bfont_hs_text1><ref1.room.name>
-		if <ref1.tag0.forsale_new>
+		if (<ref1.tag.forsale_new>)
 			button -34 - 4005 4007 1 0 <eval <dlocal._for>+100>
+			dhtmlgump +274 +3 46 20 0 0 <def.center><def.bfont_hs_text1><f_numformat <ref1.room.dtag0.value>>
+		elif (<ref1.tag.forsale>)
+			ref2=<serv.list.static_hs_<ref1>.0> // owner
+			button -34 - 4005 4007 1 0 <eval <dlocal._for>+100>
+			dhtmlgump +274 +3 46 20 0 0 <def.center><def.bfont_hs_text2><f_numformat <ref1.room.dtag0.price>>
+			tooltip <ddef0.empty_cliloc>,Sold by <ref2.f_hs_noto_bfontcolor><ref2.name><def.bfont_white>
 		else
 			gumppic -34 - 4020 0
 			tooltip <ddef0.empty_cliloc>,@Sold
 		endif
-		dhtmlgump +212 +3 46 20 0 0 <def.bfont_hs_text3><def.center><f_numformat <dlocal.maxstorage>>
-		dhtmlgump +274 +3 46 20 0 0 <def.bfont_hs_text3><def.center><f_numformat <dlocal.price>>
+		dhtmlgump +212 +3 46 20 0 0 <def.center><def.bfont_hs_text3><f_numformat <dlocal.maxstorage>>
 		dhtmlgump +350 +3 140 20 0 0 <def.bfont_hs_text3><ref1.region.name>
 	endif
 endfor
@@ -53,11 +57,15 @@ on=0
 on=100 5000
 	local.opt=<eval <argn1>-100>
 	ref1=<serv.list.temp_<src>.<dlocal.opt>>
-	src.sysmessage @1151,,1 Tracking <ref1.room.name> in <ref1.region.name> [<ref1.p>].
-	src.arrowquest 0,0,0
-	src.arrowquest <ref1.p.x>,<ref1.p.y>,0
-	if <src.isgm>
-		go=<ref1.p>
+	if !(<ref1.tag.forsale_new> || <ref1.tag.forsale>)
+		src.sysmessage @,,1 <ref1.name> is no longer on the market.
+	else
+		src.sysmessage @1151,,1 Tracking <ref1.room.name> in <ref1.region.name> [<ref1.p>].
+		src.arrowquest 0,0,0
+		src.arrowquest <ref1.p.x>,<ref1.p.y>,0
+		if <src.isgm>
+			go=<ref1.p>
+		endif
 	endif
 	sdialog d_static_hs_catalogue
 
