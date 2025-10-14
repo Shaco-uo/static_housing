@@ -2,10 +2,8 @@
 100,100
 page 0
 ref1=<src.ctag0.hs_sign> //sign
-// ref2=<room.uid> //room
 ref3=<serv.list.static_hs_<ref1>.0> // owner
 local.housetype=<serv.list.static_hs_<ref1>.2>
-
 if (<src.is_static_owner <ref1>>) || (<src.isgm>)
 	local.owner=1
 elif (<src.f_static_iscoowner <ref1>>)
@@ -21,9 +19,10 @@ if (<local.housetype>==<def.house_guild>)
 	endif
 endif
 
-
 fd_static_hs_bg 100,100
-button 120 120 36 36 1 0 20006 // update dialog debug
+if (<ddef0.hs_static_debug>==1 && <src.isgm>)
+	button 120 120 36 36 1 0 20006 // update dialog debug
+endif
 dhtmlgump 125 134 106 60 0 0 <def.center><def.h3><def.bfont_size7><ref1.name><def.h3e><def.br><def.bfont_size1><region.name>
 if (<local.guild>)
 	dhtmlgump 125 118 106 20 0 0 <def.center><local.guild_name>
@@ -80,7 +79,7 @@ if (<local.owner>) || (<local.coowner>) || (<local.friend>)
 	dhtmlgump -82 - 100 20 0 0 <def.bfont_hs_text1>Eject Person
 endif
 
-page 1
+page 1 // pages
 if <isempty <src.ctag.hs_menu>>
 	src.ctag.hs_menu=1
 	call fd_static_house_menu_1
@@ -100,15 +99,15 @@ else
 	call fd_static_house_menu_<src.dctag0.hs_menu>
 endif
 
-
-
 [DIALOG d_static_house_menu prebutton]
 src.dialogclose d_static_house_menu
-// serv.log @2,0,0 Pressed <dargn1>
+if (<ddef0.hs_static_debug>==1 && <src.isgm>)	// gm debug
+	serv.log @2,0,0 Pressed <dargn1>
+endif
 ref1=<src.ctag0.hs_sign> // sign
 if !(<ref1.isvalid>)
 	return 1
-elif (<src.room.defname>!=<ref1.room.defname>)
+elif !(<src.room> && <src.room.defname>==<ref1.room.defname>)
 	if <ref1.distance <src>> > 3
 		src.sysmessage @,,1 You can't reach the sign.
 		return 1
@@ -121,45 +120,7 @@ ON=0
 
 on=1 // buy property
 	ref1=<src.ctag0.hs_sign> // sign
-	local.gold=<ref1.dtag0.price>
-	ref2 = <serv.list.static_hs_<ref1>.0> // owner
-	if <src.is_static_owner <ref1>>
-		src.sysmessage @,,1 You cannot buy your own property.
-	elif <src.gold> < <dlocal.gold>
-		src.sysmessage @,,1 You don't have enough gold to buy this property.
-	elif <src.static_house_total> > <ddef0.hs_static_amount_max>
-		src.sysmessage @33,,1 You cannot have more properties (Nax <ddef0.hs_static_amount_max>).
-	else
-		src.gold -= <dlocal.gold>
-		ref2.gold += <dlocal.gold>
-		if <ref2.isonline>
-			ref2.trysrc <ref2> sysmessage @76,,1 Your property <ref1.name> has been sold to <src.name> for <f_numformat <dlocal.gold>>.
-		endif
-		ref1.f_static_reset_sign
-		src.f_addlist_static_house <ref1> // list stuff
-		ref1.name=<ref1.room.name>
-		ref1.tag.forsale=
-		ref1.tag.price=
-		ref1.tag.buildon=<serv.rtime>
-		ref1.room.events=+r_static_house_system
-		ref1.room.flags=region_flag_nodecay|region_flag_nobuilding|region_antimagic_recall_in|region_flag_insta_logout
-		if (<def.hs_can_decay>)
-			if (<ref1.tag0.decay_exempt>)
-				ref1.tag.decay_exempt=
-				ref1.attr = 02|010
-				ref1.timer = 60*60*24*<ddef0.hs_can_decay>
-			endif
-		else
-			ref1.attr = 010
-			ref1.timer = -1
-		endif
-		ref1.resendtooltip 1,0
-		src.events=+e_static_house_events
-		src.dspeech=+spk_static_cmds
-		ref1.f_static_recode_access
-		src.sysmessage @76,,1 You are the new owner of <ref1.name>, bought from <ref2.name> for <f_numformat <dlocal.gold>> gp.
-		src.ctag.hs_menu=
-	endif
+	src.f_static_hs_player_buy <ref1>
 	sdialog d_static_house_menu
 
 on=2
@@ -442,9 +403,12 @@ ON=2965 3140	// sign dispid
 
 ON=12967 12978 // sign hanger
 	ref1=<src.ctag0.hs_sign> // sign
-	if !(<isempty <ref1.tag.sign_hanger>>)
-		ref2=<ref1.tag0.sign_hanger> 	// sign hanger
-		ref2.dispid=<hval <argn>-10000>
+	if (<ref1.tag0.sign_hanger>)
+		ref2=<ref1.tag0.sign_hanger>
+		if !(<ref2.tag0.old_dispid>)
+			ref2.tag.old_dispid=<ref2.dispid>
+		endif
+		ref2.dispid=<hval <argn1>-10000>
 		ref2.update
 		src.sysmessage @,,1 The sign hanger has been updated.
 		sdialog d_static_house_menu
@@ -483,8 +447,8 @@ on=6003 // sell Property
 		local.gold=<argtxt[0]>
 		if !(<isnum <local.gold>>) || (<dlocal.gold> <= 0)
 			src.sysmessage @,,1 Only positive numeric values are valid.
-		elif (<dlocal.gold> > <ref1.room.dtag0.value>)
-			src.sysmessage @33,,1 Price cannot be lower thant property base value .
+		elif (<dlocal.gold> < <ref1.room.dtag0.value>)
+			src.sysmessage @33,,1 Price cannot be lower thant property base value.
 		elif (<local.lockdowns>) || (<local.secured>)
 			src.sysmessage @33,,1 You can't put a house on the market as long it has lockdowns/secure containers.
 		else
@@ -494,13 +458,11 @@ on=6003 // sell Property
 			if (<def.hs_can_decay>)
 				if (<ref1.tag0.decay_exempt>)
 					ref1.tag.decay_exempt=
-					ref1.attr = 02|010
-					ref1.timer = 60*60*24*<ddef0.hs_can_decay>
+					ref1.timer=60*60*24*<ddef0.hs_can_decay>
 					src.sysmessage @33,,1 Your property decay timer has been set to <f_time_format <ref1.timer>>.
 				endif
 			else
-				ref1.attr = 010
-				ref1.timer = -1
+				ref1.timer=-1
 			endif
 			ref1.f_static_house_open
 			ref1.resendtooltip 1,0
@@ -535,8 +497,9 @@ on=6005 // property Removal
 		ref2.gold += <dlocal.total>
 		src.sysmessage @,,1 <ref3.name> was refunded <f_numformat <dlocal.total>> gp.
 	endif
+	ref1.tag.forsale_new=1
 	ref1.f_static_reset_sign
-	src.sysmessage @,,1 The number of static houses you own is now <src.static_house_total>.
+	src.sysmessage @,,1 The number of static houses you own is <src.static_house_total>.
 	src.ctag.hs_sign=
 	src.ctag.hs_menu=
 	src.update
@@ -654,7 +617,6 @@ ON=6012 // set decay exempt GM only
 	if <src.isgm>
 		ref1=<src.ctag0.hs_sign> // sign
 		ref1.tag.decay_exempt=1
-		ref1.attr &= ~02
 		ref1.timer=-1
 		src.sysmessage @,,1 Property is now exempt from decay.
 	endif
@@ -664,7 +626,6 @@ ON=6013 // remove decay exempt GM only
 	if <src.isgm>
 		ref1=<src.ctag0.hs_sign> // sign
 		ref1.tag.decay_exempt=
-		ref1.attr |= 02
 		ref1.timer = 60*60*24*<ddef0.hs_can_decay>
 		src.sysmessage @,,1 Property will decay in <f_time_format <ref1.timer>>.
 	endif

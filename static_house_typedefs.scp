@@ -9,7 +9,7 @@ On=@ClientTooltip
 			if <ref1.isvalid> && <ref1.isplayer>
 				local.f_tooltip .= <def.br>Owner <def.bfont_lyellow><uid.<serv.list.static_hs_<uid>.0>.name><def.bfont_white> // owner
 			endif
-			if (<serv.list.static_hs_<uid>.2> == <def.house_guild>)
+			if (<serv.list.static_hs_<uid>.2>==<def.house_guild>)
 				if !<isempty <tag.is_guild>>
 					ref5=<tag0.is_guild>
 					if <ref5.isvalid>
@@ -35,29 +35,29 @@ On=@DClick
 		return 1
 	endif
 	src.ctag.hs_sign=<uid>
-	if <tag0.forsale_new>
-		src.f_resenddialog d_static_forsale
-	else
+	if (<src.is_static_owner <uid>> || <src.f_static_iscoowner <uid>> || <src.f_static_isfriend <uid>> || <src.isgm>)
 		src.ctag.hs_menu=1
-		src.f_resenddialog d_static_house_menu
-		if <src.isgm>	// gm debug
+		if (<ddef0.hs_static_debug>==1 && <src.isgm>)	// gm debug
 			src.f_resenddialog d_static_house_debug
 		endif
+		src.f_resenddialog d_static_house_menu
+	elif (<tag0.forsale_new>)
+		src.f_resenddialog d_static_forsale
+	else
+		src.f_resenddialog <qval <tag0.forsale>?d_static_forsale:d_static_house_visitor>
 	endif
 	return 1
 
 ON=@Timer
-	f_static_reset_sign
-	return 1
-
-On=@Destroy
 	ref1=<serv.list.static_hs_<uid>.0>
 	if <ref1.isvalid> && <ref1.isplayer>
 		if <ref1.isonline>
 			ref1.trysrc <ref1> sysmessage @33,,1 Your static property <name> has been removed.
 		endif
 	endif
-
+	tag.forsale_new=1
+	f_static_reset_sign
+	return 1
 
 
 [ITEMDEF i_sign_static_house]
@@ -142,7 +142,7 @@ On=@ContextMenuRequest
 	endif
 
 On=@ContextMenuSelect
-	if (<argn> == 700)
+	if (<argn>==700)
 		ref1=<uid>
 		src.ctag.secure=<uid>
 		src.f_resenddialog d_static_secure
@@ -190,7 +190,7 @@ On=@DClick
 [TYPEDEF ei_static_lockdown]
 On=@ContextMenuRequest
 	ref1=<room.tag0.sign>
-	if (<src.is_static_owner <ref1>>) || (<tag0.lockedby> == <src>) || <src.isgm>
+	if (<src.is_static_owner <ref1>>) || (<tag0.lockedby>==<src>) || <src.isgm>
 		src.AddContextEntry 701,1015183	// Unlock
 	endif
 
@@ -203,7 +203,7 @@ On=@ContextMenuSelect
 	elif !(<isevent.ei_static_lockdown>)
 		src.sysmessage @,,1 <name> is no longer locked down.
 	else
-		if (<argn> == 701)
+		if (<argn>==701)
 			ref1=<room.tag0.sign>
 			local.lockdowns=<eval <serv.list.static_hs_<ref1>.3>-1>
 			serv.list.static_hs_<ref1>.3=<dlocal.lockdowns>
@@ -248,13 +248,13 @@ On=@Clienttooltip
 	if <istevent.t_item_tooltip> // custom tooltip event
 	else
 		local.f_tooltip = Locked Down & Secure
-		if (<tag0.access> == <def.house_access_owner>)
+		if (<tag0.access>==<def.house_access_owner>)
 			local.f_tooltip .= <def.br>Access <def.bfont_lyellow>Owner Only<def.bfont_white>
-		elif (<tag0.access> == <def.house_access_owner>)
+		elif (<tag0.access>==<def.house_access_owner>)
 			local.f_tooltip .= <def.br>Access <def.bfont_lyellow>Co-Owners<def.bfont_white>
-		elif (<tag0.access> == <def.house_access_friend>)
+		elif (<tag0.access>==<def.house_access_friend>)
 			local.f_tooltip .= <def.br>Access <def.bfont_lyellow>Friends<def.bfont_white>
-		elif (<tag0.access> == <def.house_access_guild>)
+		elif (<tag0.access>==<def.house_access_guild>)
 			ref1 = <tag.is_guild>
 			if <ref1.isvalid>
 				local.f_tooltip .= <def.br><def.bfont_lyellow>[<ref1.abbrev>]<def.bfont_white>
@@ -276,10 +276,10 @@ On=@ContextMenuSelect
 		src.sysmessage @,,1 You can't reach <name>.
 		return 1
 	endif
-	if (<argn> == 700)
+	if (<argn>==700)
 		src.ctag.secure=<uid>
 		src.f_resenddialog d_static_secure
-	elif (<argn> == 701)
+	elif (<argn>==701)
 		ref1=<room.tag0.sign>
 		local.secured=<eval <serv.list.static_hs_<ref1>.4>-1>
 		serv.list.static_hs_<ref1>.4=<dlocal.secured>
@@ -289,9 +289,9 @@ On=@ContextMenuSelect
 			attr=<tag0.old_attr>
 			tag.old_attr =
 		endif
-		if <attr>&attr_decay
+		if (<attr>&attr_decay)
 			timer=<eval(<serv.DecayTimer>*60)>
-		endif		
+		endif
 		message @,,2 501718	// No longer secure!
 		resendtooltip 1,0
 		update
@@ -333,41 +333,40 @@ On=@Enter
 	if <src.isplayer>
 		src.events +e_static_house_events
 		src.dspeech +spk_static_cmds
-		// src.timerf 1, f_house_visitor_count
 		ref1=<tag.sign> // room tag sign
 		ref3=<serv.list.static_hs_<ref1>.0>	// owner
 		local.housetype=<serv.list.static_hs_<ref1>.2>
-		// serv.log <src.name> entered <name> sign is <htag.sign> housetype <local.housetype>
-		if !<src.isgm>
-			if <local.housetype> == <def.house_private>
-				if (<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.f_static_isfriend <ref1>>) || (<src.f_static_isaccess <ref1>>) || (<src.isgm>)
+		if (<src.isgm>)
+			return 0
+		elif (<local.housetype>==<def.house_private>)
+			if (<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.f_static_isfriend <ref1>>) || (<src.f_static_isaccess <ref1>>)
+				return 0
+			elif !(strcmpi (<ref3.account>,<src.account>))	// allow same acc as owner
+				return 0
+			elif (<local.housetype>==<def.house_guild>)
+				if (<src.guild>==<ref1.tag0.is_guild>)
 					return 0
-				elseif !(strcmpi (<ref3.account>,<src.account>))	// allow same acc as owner
-					return 0
-				elseif (<local.housetype> == <def.house_guild>)
-					if (<src.guild> == <tag0.is_guild>)
-						return 0
-					else
-						src.sysmessage @33,,1 You are not a member of this guild.
-						return 1
-					endif
 				else
-					src.sysmessage @33,,1 This is private property. You may not trespass.
+					src.f_static_hs_smsg 33,"You are not a member of this guild" // add cd to block message
 					return 1
 				endif
 			else
-				if (<src.f_static_isban <ref1>>)
-					src.sysmessage @33,,1 You are banned from this property.
-					return 1
-				else
-					return 0
-				endif
+				src.f_static_hs_smsg 33,"This is private property. You may not trespass"
+				return 1
+			endif
+		else
+			if (<src.f_static_isban <ref1>>)
+				src.f_static_hs_smsg 33,"You are banned from this property"
+				return 1
+			else
+				// src.timerf 1, f_house_visitor_count
+				return 0
 			endif
 		endif
 	endif
 
 On=@Exit
-	src.dialogclose d_static_house_menu 
+	src.dialogclose d_static_house_menu
 	src.events -e_static_house_events
 	if <src.isdspeech.spk_static_cmds>
 		src.dspeech -spk_static_cmds
@@ -393,7 +392,7 @@ On=@Exit
 
 [EVENTS e_static_house_events]
 On=@ItemDClick
-	if (<act.defname> == <def.vendor_deed_id>)
+	if (<act.defname>==<def.vendor_deed_id>)
 		ref1=<room.tag0.sign> // sign
 		ref2=<room.uid>
 		ref3=<serv.list.static_hs_<ref1>.0> //owner
@@ -404,7 +403,7 @@ On=@ItemDClick
 				src.sysmessage @33,,1 Only the home owner may place vendors here.
 				return 1
 			else
-				if (<local.housetype> == <def.house_private>)
+				if (<local.housetype>==<def.house_private>)
 					src.sysmessage @33,,1 You must set your building to public before you can place vendors here.
 					return 1
 				else
@@ -419,7 +418,7 @@ On=@ItemDClick
 			endif
 		else
 			if (<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.f_static_isfriend <ref1>>) || (<src.isgm>) || !(strcmpi (<ref3.account>,<src.account>))
-				if (<ref1.housetype> == <def.house_private>)
+				if (<ref1.housetype>==<def.house_private>)
 					src.sysmessage @33,,1 You must set your building to public before you can place vendors here.
 					return 1
 				else
@@ -439,12 +438,12 @@ On=@ItemDClick
 	endif
 
 On=@ContextMenuRequest
-	if (<uid> == <src>) && !(<isempty <room.tag.sign>>)
+	if (<uid>==<src>) && !(<isempty <room.tag.sign>>)
 		src.AddContextEntry 101,3006207
 	endif
 
 On=@ContextMenuSelect
-	if (<argn> == 101)
+	if (<argn>==101)
 		ref1=<room.tag0.sign>
 		if <isempty <room.tag.exit>>
 			src.go <ref1.p>

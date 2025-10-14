@@ -1,6 +1,7 @@
 [DEFNAME static_housing]
 hs_static_amount_max	1 // max static buildings per player
 hs_static_store_crate	1 // 0=disabled. on removal use crate to store stuff instead of destroy.
+hs_static_debug			1 // enable debug options (GM)
 
 [FUNCTION static_house_total]
 local.hs=<tag0.static_houses>
@@ -14,17 +15,41 @@ else
 	return <dargv>
 endif
 
+[FUNCTION f_add_static_house]
+ref1=<args> // sign
+local.count=<static_house_total>
+if !<local.count>
+	tag.static_houses=<ref1>
+	// serv.list.chardata_<uid>.11=<ref1> // custom
+else
+	tag.static_houses=<tag0.static_houses>,<ref1>
+	// serv.list.chardata_<uid>.11=<serv.list.chardata_<uid>.11>,<ref1> // custom
+endif
+
+[FUNCTION f_del_static_house]
+ref1=<args> // sign
+ref2=<uid> // owner
+local.count=<ref2.static_house_total>
+if !(<local.count>)
+elif (<dlocal.count>==1)
+	ref2.tag.static_houses=
+	// serv.list.chardata_<ref2>.11 = 0 // custom
+else
+	local.list=0
+	for 0 <eval <dlocal.count>-1>
+		ref3=<argv[<dlocal._for>]> // sign uid in list
+		if (<ref3>==<ref1>)
+		else
+			local.list .= ",<ref3>"
+		endif
+	endfor
+	ref2.tag.static_houses=<streat <local.list>>
+	// serv.list.chardata_<ref2>.11 = <streat <local.list>> // custom
+endif
+
 [FUNCTION f_addlist_static_house]
 ref1=<uid> // player
 ref2=<args> // sign
-local.count=<ref1.static_house_total>
-if !<local.count>
-	ref1.tag.static_houses=<ref2>
-	// serv.list.chardata_<ref1>.11=<ref2> // custom
-else
-	ref1.tag.static_houses = <ref1.tag0.static_houses>,<ref2>
-	// serv.list.chardata_<ref1>.11 = <serv.list.chardata_<ref1>.11>,<ref2> // custom
-endif
 serv.list.static_hs_<ref2>.clear
 serv.list.static_hs_<ref2>.add=<ref1> // 0 owner
 serv.list.static_hs_<ref2>.add=<ref2.room.name> // 1 default name
@@ -46,46 +71,53 @@ serv.list.static_hs_<ref2>.add=<ref2.room.dtag0.value> // 8 backup value
 [FUNCTION f_removelist_static_house]
 ref1=<uid> // sign
 ref2=<serv.list.static_hs_<ref1>.0> // owner
-local.count=<ref2.static_house_total>
 local.name=<serv.list.static_hs_<ref1>.1>
-if !<local.count>
-elif <dlocal.count>==1
-	ref2.tag.static_houses=
-	// serv.list.chardata_<ref2>.11 = 0 // custom
-else
-	local.list=0
-	for 0 <eval <dlocal.count>-1>
-	ref3=<argv[<dlocal._for>]> // sign in list uid
-	if <ref3>==<ref1>
-	else
-		local.list .= ",<ref3>"
-	endif
-	endfor
-	ref2.tag.static_houses= = <streat <local.list>>
-	// serv.list.chardata_<ref2>.11 = <streat <local.list>> // custom
-endif
-ref1.name=<local.name>
-ref1.room.name=<local.name>
-ref1.room.flags=<serv.list.static_hs_<ref1>.6>
-ref1.room.events=<serv.list.static_hs_<ref1>.7>
+local.flags=<serv.list.static_hs_<ref1>.6>
+local.events=<serv.list.static_hs_<ref1>.7>
 serv.list.static_hs_<ref1>.clear
 serv.list.static_hs_<ref1>_ban.clear
 serv.list.static_hs_<ref1>_access.clear
 serv.list.static_hs_<ref1>_coowners.clear
 serv.list.static_hs_<ref1>_friends.clear
+ref1.name=<local.name>
+ref1.room.name=<local.name>
+ref1.room.flags=<local.flags>
+ref1.room.events=<local.events>
 
 [FUNCTION f_static_reset_sign]
 ref1=<uid>
-ref1.color=0
-ref1.dispid=<id>
-ref1.tag.buildon=
-if <ddef0.hs_static_store_crate>==1
+ref2=<serv.list.static_hs_<ref1>.0> // owner
+if (<def.hs_allow_sign_color>)
+	ref1.color=0
+endif
+if (<ref1.dispid>!=<ref1.id>)
+	ref1.dispid=<ref1.id>
+	ref1.update
+endif
+if (<ref1.tag0.forsale_new>)
+	ref1.room.events=-r_static_house_system
+endif
+if (<ref1.tag0.sign_hanger>) && (<def.hs_allow_sign_hanger>)
+	ref3=<ref1.tag0.sign_hanger> // reset sign hanger
+	if (<ref3.tag0.old_dispid>)
+		ref3.dispid=<ref3.tag0.old_dispid>
+		ref3.tag.old_dispid=
+		ref3.update
+	endif
+endif
+if (<ref2.isvalid> && <ref2.isplayer>)
+	ref2.f_del_static_house <ref1>
+endif
+if (<ddef0.hs_static_store_crate>==1)
 	ref1.f_static_crate_allitems
 else
 	ref1.f_static_remove_allitems
 endif
 ref1.f_removelist_static_house
-ref1.tag.forsale_new=1
+ref1.tag.buildon=
+ref1.tag.forsale=
+ref1.tag.price=
+ref1.tag.decay_exempt=
 ref1.resendtooltip 1,0
 
 [FUNCTION f_static_remove_allitems]	// ref1.f_static_remove_allitems
@@ -101,13 +133,16 @@ elif (<type>==t_stone_guild)
 	p=<qval <isempty <ref1.room.tag.exit>>?<ref1.p>:<ref1.room.tag0.exit>>
 elif (<type>==t_door)
 	tag.access=
-	events=
+	events=-ei_static_door
+	update
+elif (<type>==t_telepad)
+	tag.access=
+	events=-ei_static_telepad
 	update
 else
 	remove
 endif
 endfor
-
 
 [FUNCTION f_static_crate_allitems]	// ref2.f_static_crate_allitems
 ref1=<uid> // sign
@@ -126,6 +161,10 @@ elif (<type>==t_stone_guild)
 elif (<type>==t_door)
 	tag.access=
 	events=-ei_static_door
+	update
+elif (<type>==t_telepad)
+	tag.access=
+	events=-ei_static_telepad
 	update
 else
 	if (<isevent.ei_static_secure>)
@@ -161,6 +200,90 @@ endif
 endfor
 if !(<local.c>)
 	ref3.remove
+endif
+
+
+[FUNCTION f_static_hs_server_buy]
+ref1=<args> // sign
+ref2=<uid> // player
+local.name=<ref1.room.name>
+local.gold=<qval <ref1.tag0.forsale>?<ref1.dtag0.price>:<ref1.room.dtag0.value>>
+if !(<ref2.isgm>)
+	if (<ref2.gold> < <dlocal.gold>)
+		ref2.sysmessage @,,1 You don't have enough gold to buy this property.
+		return 1
+	elif (<ref2.static_house_total> > <ddef0.hs_static_amount_max>)
+		ref2.sysmessage 33,,1 You cannot have more properties (Max <ddef0.hs_static_amount_max>).
+		return 1
+	else
+		ref2.gold -= <dlocal.gold>
+		ref2.sysmessage @70,,1 You are the new owner of <local.name>, bought for <f_numformat <dlocal.gold>> gp.
+	endif
+else
+	ref2.sysmessage @1151,,1 You are the new owner of <local.name> (Did not pay the <f_numformat <dlocal.gold>> gp).
+endif
+ref2.f_addlist_static_house <ref1> // list stuff
+ref2.f_add_static_house <ref1> // add to house count
+ref1.name=<ref1.room.name>
+ref1.tag.forsale_new=
+ref1.tag.buildon=<serv.rtime>
+ref1.room.events=+r_static_house_system
+ref1.room.flags=region_flag_nodecay|region_antimagic_recall_in|region_flag_insta_logout
+if (<def.hs_can_decay>)
+	ref1.timer=60*60*24*<ddef0.hs_can_decay>
+else
+	ref1.timer=-1
+endif
+ref1.resendtooltip 1,0
+ref1.f_static_recode_access
+ref2.sysmessage @,,1 The number of static houses you own is <ref2.static_house_total>.
+if (<ref2.room> && <ref2.room.defname>==<ref1.room.defname>)
+	if !(<ref2.isevent.e_static_house_events>)
+		ref2.events=+e_static_house_events
+		ref2.dspeech=+spk_static_cmds
+	endif
+endif
+
+
+
+[FUNCTION f_static_hs_player_buy]
+ref1=<args> // sign
+ref2=<serv.list.static_hs_<ref1>.0> // owner
+local.gold=<ref1.dtag0.price>
+if (<src.is_static_owner <ref1>>)
+	src.sysmessage @,,1 You cannot buy your own property.
+elif (<src.gold> < <dlocal.gold>)
+	src.sysmessage @,,1 You don't have enough gold to buy this property.
+elif (<src.static_house_total> > <ddef0.hs_static_amount_max>)
+	src.sysmessage @33,,1 You cannot have more properties (Max <ddef0.hs_static_amount_max>).
+else
+	src.gold -= <dlocal.gold>
+	ref2.gold += <dlocal.gold>
+	if (<ref2.isonline>)
+		ref2.trysrc <ref2> sysmessage @76,,1 Your property <ref1.name> has been sold to <src.name> for <f_numformat <dlocal.gold>>.
+	endif
+	ref1.f_static_reset_sign
+	src.f_addlist_static_house <ref1> // list stuff
+	src.f_add_static_house <ref1> // houses
+	ref1.name=<ref1.room.name>
+	ref1.tag.buildon=<serv.rtime>
+	ref1.room.events=+r_static_house_system
+	ref1.room.flags=region_flag_nodecay|region_antimagic_recall_in|region_flag_insta_logout
+	if (<def.hs_can_decay>)
+		ref1.timer=60*60*24*<ddef0.hs_can_decay>
+	else
+		ref1.timer=-1
+	endif
+	ref1.resendtooltip 1,0
+	ref1.f_static_recode_access
+	src.sysmessage @76,,1 You are the new owner of <ref1.name>, bought from <ref2.name> for <f_numformat <dlocal.gold>> gp.
+	src.sysmessage @,,1 The number of static houses you own is <src.static_house_total>.
+	if (<src.room> && <src.room.defname>==<ref1.room.defname>)
+		if !(<src.isevent.e_static_house_events>)
+			src.events=+e_static_house_events
+			src.dspeech=+spk_static_cmds
+		endif
+	endif
 endif
 
 
@@ -311,6 +434,12 @@ endif
 endfor
 
 
+[FUNCTION f_static_hs_smsg]
+if <dctag0.msg_cd> < <serv.time>
+	ctag.msg_cd=<eval <serv.time>+30> // 3 sec cd
+	sysmessage @<dargv[0]>,,1 <argv[1]>.
+endif
+
 [FUNCTION f_static_recode_access]
 ref1=<uid>	// sign
 foritems 100
@@ -447,13 +576,22 @@ src.f_resenddialog d_static_house_menu
 
 [FUNCTION f_static_house_open]
 ref1=<uid> // sign
-foritems 50
+foritems 100
 ref2=<uid>
 if !(<ref2.room> && <ref2.room.defname>==<ref1.room.defname>)
 elif !(<ref2.type>==t_door || <ref2.type>==t_door_locked || <ref2.type>==t_telepad)
-elif !(<ref2.tag0.access>)
 else
+	if (<ref2.type>==t_door_locked)
+		ref2.type=t_door
+	endif
+	if <ref2.isevent.ei_static_door>
+		ref2.events=-ei_static_door
+	endif
+	if <ref2.isevent.ei_static_telepad>
+		ref2.events=-ei_static_telepad
+	endif
 	ref2.tag.access=
+	ref2.resendtooltip 1,0
 endif
 endfor
 serv.list.static_hs_<ref1>.2=<def.house_public>
@@ -615,11 +753,11 @@ elif !(<argo.room>)
 	src.sysmessage @33,,1 <argo.name> is not in the property.
 elif (<argo.room.defname> != <ref1.room.defname>)
 	src.sysmessage @33,,1 <argo.name> is not in the property.
-elif <argo.cont>
+elif (<argo.cont>)
 	src.sysmessage @,,1 You cannot lockdown items inside other containers.
-elif <argo.f_isContainer>
+elif (<argo.f_isContainer>)
 	src.sysmessage @,,1 You cannot lockdown containers, use secure instead.
-elif <argo.isevent.ei_static_lockdown> || <argo.attr>&attr_move_never
+elif (<argo.isevent.ei_static_lockdown> || <argo.attr>&attr_move_never)
 	argo.message @,,1 This is already locked down!
 // elif <argo.isevent.t_house_addon> || <argo.istevent.t_remove_timer> || <argo.isevent.t_remove_timer> || <argo.tag0.enchant_timer> || <argo.type>==t_ethereal_mount // || <argo.istevent.t_plant_potted>  // custom
 // 	src.sysmessage @33,,1 Invalid Target.
@@ -633,8 +771,8 @@ else
 		local.current_storage=<eval <dlocal.lockdowns>+<dlocal.secured>>
 		local.increasedstorage=<serv.list.static_hs_<ref1>.5>
 		if <dlocal.increasedstorage>!=0
-			local.max_lockdowns=<room.dtag0.maxlockdowns> + <muldiv <room.dtag0.maxlockdowns>,<dlocal.increasedstorage>,100>
-			local.max_storage=<room.dtag0.maxstorage> + <muldiv <room.dtag0.maxstorage>,<dlocal.increasedstorage>,100>
+			local.max_lockdowns=<eval <room.dtag0.maxlockdowns>+<muldiv <room.dtag0.maxlockdowns>,<dlocal.increasedstorage>,100>>
+			local.max_storage=<eval <room.dtag0.maxstorage>+<muldiv <room.dtag0.maxstorage>,<dlocal.increasedstorage>,100>>
 		else
 			local.max_lockdowns=<room.dtag0.maxlockdowns>
 			local.max_storage=<room.dtag0.maxstorage>
@@ -650,7 +788,7 @@ else
 		serv.list.static_hs_<ref1>.3=<dlocal.lockdowns>
 	endif
 	argo.tag.old_attr=<argo.attr>
-	argo.attr=010
+	argo.attr |= 010
 	argo.timer=-1
 	argo.events=+ei_static_lockdown
 	argo.message @,,2 501721 	// Locked down!
@@ -704,10 +842,8 @@ else
 	endif
 	argo.events +ei_static_secure
 	argo.tag.access=<f_static_get_priv <src>,<ref1>>
-	if <argo.attr>
-		argo.tag.old_attr=<argo.attr>
-	endif
-	argo.attr=010
+	argo.tag.old_attr=<argo.attr>
+	argo.attr |= 010
 	argo.timer=-1
 	argo.message @,,2 501716	// Secure!
 	argo.resendtooltip 1

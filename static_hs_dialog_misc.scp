@@ -80,7 +80,9 @@ else
 		return 1
 	endif
 endif
-// serv.log @3,0,0 pressed <dargn1>
+if (<ddef0.hs_static_debug>==1 && <src.isgm>)	// gm debug
+	serv.log @3,0,0 pressed <dargn1>
+endif
 
 [DIALOG d_static_hs_commands button]
 on=1 16
@@ -165,7 +167,16 @@ ON=1 5
 100,100
 page 0
 ref1=<src.ctag0.hs_sign> //sign
-local.gold=<ref1.room.dtag0.value>
+if !(<ref1.isvalid> && <ref1.istevent.t_static_house_sign>)
+	return 1
+elif (<ref1.tag0.forsale>)
+	local.player=1
+	local.gold=<ref1.dtag0.price>
+elif (<ref1.tag0.forsale_new>)
+	local.gold=<ref1.room.dtag0.value>
+else
+	return 1
+endif
 
 f_house_dialog 0,106,410,166
 dorigin 252 124
@@ -173,63 +184,98 @@ gumppic - - 100 // brass sign gump
 dhtmlgump +18 +16 106 20 0 0 <def.center><def.bfont_size4><def.h3>FOR SALE
 dhtmlgump +18 *34 106 60 0 0 <def.center><def.bfont_hs_text1><def.bfont_size4><ref1.room.name><def.br><def.bfont_hs_gray><def.bfont_size1><ref1.region.name>
 dorigin 20 106
-dhtmlgump - *20 180 20 0 0 <def.bfont_hs_text1>Property Value
+dhtmlgump - *20 180 20 0 0 <def.bfont_hs_text3>Property Value
 dhtmlgump +148 - 180 20 0 0 <def.bfont_hs_text2><f_numformat <dlocal.gold>><def.bfont_hs_text1> gp
-dhtmlgump - *20 180 20 0 0 <def.bfont_hs_text1>Maximum Lockdowns
+dhtmlgump - *20 180 20 0 0 <def.bfont_hs_text3>Maximum Lockdowns
 dhtmlgump +148 - 180 20 0 0 <def.bfont_hs_text1><QVAL (<def.hs_hs_secure_locks_limit>)?<ref1.room.dtag0.maxlockdowns>:Unlimited>
-dhtmlgump - *20 180 20 0 0 <def.bfont_hs_text1>Maximum Secured
+dhtmlgump - *20 180 20 0 0 <def.bfont_hs_text3>Maximum Secured
 dhtmlgump +148 - 180 20 0 0 <def.bfont_hs_text1><QVAL (<def.hs_hs_secure_locks_limit>)?<ref1.room.dtag0.maxsecured>:Unlimited>
-dhtmlgump - *20 180 20 0 0 <def.bfont_hs_text1>Maximum Storage
+dhtmlgump - *20 180 20 0 0 <def.bfont_hs_text3>Maximum Storage
 dhtmlgump +148 - 180 20 0 0 <def.bfont_hs_text1><QVAL (<def.hs_hs_secure_locks_limit>)? <ref1.room.dtag0.maxstorage>:Unlimited>
-dhtmlgump - *20 180 20 0 0 <def.bfont_hs_text1>Maximum Vendors
+dhtmlgump - *20 180 20 0 0 <def.bfont_hs_text3>Maximum Vendors
 dhtmlgump +148 - 180 20 0 0 <def.bfont_hs_text1><ref1.room.dtag0.maxvendors>
-button +5 *30 4005 4007 1 0 1
-dhtmlgump +36 - 250 20 0 0 <def.bfont_hs_title>Buy this property for <def.bfont_hs_text2><f_numformat <dlocal.gold>><def.bfont_hs_title> gp
+button +5 *30 4005 4007 1 0 <qval <local.player>?2:1>
+dhtmlgump +36 - 250 20 0 0 <def.bfont_hs_text1>Buy this property for <def.bfont_hs_text2><f_numformat <dlocal.gold>><def.bfont_hs_text1> gp
 
 [DIALOG d_static_forsale prebutton]
 src.dialogclose d_static_forsale
 src.dialogclose d_static_house_menu
-ref1=<src.ctag0.hs_sign> //sign
-if <src.room.defname>!=<ref1.room.defname>
+ref1=<src.ctag0.hs_sign>
+if !(<ref1.isvalid> && <ref1.istevent.t_static_house_sign>)
+	return 1
+elif !(<src.room> && <src.room.defname>==<ref1.room.defname>)
 	src.sysmessage @,,1 The sign is too far away.
+	return 1
+elif !(<ref1.tag0.forsale> || <ref1.tag0.forsale_new>)
+	src.sysmessage @,,1 <ref1.name> is no longer on the market.
 	return 1
 endif
 
 [DIALOG d_static_forsale button]
 ON=0
 	return 1
-ON=1
+ON=1 // buy from server
 	ref1=<src.ctag0.hs_sign> //sign
 	if !<src.isgm>
-		local.gold=<ref1.room.dtag0.value>
+		local.gold=<qval <ref1.tag0.forsale>?<ref1.dtag0.price>:<ref1.room.dtag0.value>>
 		if <src.gold> < <dlocal.gold>
 			src.sysmessage @,,1 You don't have enough gold to buy this property.
 			return 1
 		elif <src.static_house_total> > <ddef0.hs_static_amount_max>
-			src.sysmessage 33,,1 You cannot have more properties (Nax <ddef0.hs_static_amount_max>).
+			src.sysmessage 33,,1 You cannot have more properties (Max <ddef0.hs_static_amount_max>).
 			return 1
 		endif
 		src.gold -= <dlocal.gold>
 	endif
 	src.f_addlist_static_house <ref1> // list stuff
+	src.f_add_static_house <ref1> // add to house count
 	ref1.name=<ref1.room.name>
 	ref1.tag.forsale_new=
 	ref1.tag.buildon=<serv.rtime>
 	ref1.room.events=+r_static_house_system
-	ref1.room.flags=region_flag_nodecay|region_flag_nobuilding|region_antimagic_recall_in|region_flag_insta_logout
+	ref1.room.flags=region_flag_nodecay|region_antimagic_recall_in|region_flag_insta_logout
 	if <def.hs_can_decay>
-		ref1.timer = 60*60*24*<ddef0.hs_can_decay>
+		ref1.timer=60*60*24*<ddef0.hs_can_decay>
 	else
-		ref1.timer = -1
+		ref1.timer=-1
 	endif
 	ref1.f_static_recode_access
-	src.events=+e_static_house_events
-	src.dspeech=+spk_static_cmds
+	if (<src.room> && <src.room.defname>==<ref1.room.defname>)
+		if !(<src.isevent.e_static_house_events>)
+			src.events=+e_static_house_events
+			src.dspeech=+spk_static_cmds
+		endif
+	endif
 	if <local.gold>
 		src.sysmessage @70,,1 You are the new owner of <ref1.name>, bought for <f_numformat <dlocal.gold>> gp.
 	endif
-	src.ctag.hs_menu=
+	src.sysmessage @,,1 The number of static houses you own is <src.static_house_total>.
+	src.ctag.hs_menu=1
 	src.f_resenddialog d_static_house_menu
+
+on=2 // buy from player
+	ref1=<src.ctag0.hs_sign>
+	src.ctag.hs_menu=1
+	src.f_static_hs_player_buy <ref1>
+	src.f_resenddialog d_static_house_menu
+
+
+// ***********************************
+// ***********************************
+// ***********************************
+
+[DIALOG d_static_house_visitor]
+100,100
+ref1=<src.ctag0.hs_sign>
+local.housetype=<serv.list.static_hs_<ref1>.2>
+gumppic  100 100 100
+if (<local.housetype>==<def.house_guild>)
+	ref5=<ref1.tag0.is_guild>
+	if <ref5.isvalid>
+		dhtmlgump 110 112 124 20 0 0 <def.center><qval <isempty <ref5.abbrev>>?<def.bfont_size1><ref5.name>:[<ref5.abbrev>]>
+	endif
+endif
+dhtmlgump 110 130 124 60 0 0 <def.center><def.h3><def.bfont_size7><ref1.name><def.br><def.bfont_size1><region.name>
 
 // ***********************************
 // ***********************************
@@ -252,19 +298,19 @@ local.secured=<serv.list.static_hs_<ref1>.4>
 local.increasedstorage = <serv.list.static_hs_<ref1>.5>
 local.current_storage = <dlocal.lockdowns> + <dlocal.secured>
 if <dlocal.increasedstorage>!=0
-	local.max_lockdowns = <room.dtag0.maxlockdowns> + <muldiv <room.dtag0.maxlockdowns>,<dlocal.increasedstorage>,100>
-	local.max_secured = <room.dtag0.maxsecured> + <muldiv <room.dtag0.maxsecured>,<dlocal.increasedstorage>,100>
-	local.max_storage = <room.dtag0.maxstorage> + <muldiv <room.dtag0.maxstorage>,<dlocal.increasedstorage>,100>
+	local.max_lockdowns = <ref1.room.dtag0.maxlockdowns> + <muldiv <ref1.room.dtag0.maxlockdowns>,<dlocal.increasedstorage>,100>
+	local.max_secured = <ref1.room.dtag0.maxsecured> + <muldiv <ref1.room.dtag0.maxsecured>,<dlocal.increasedstorage>,100>
+	local.max_storage = <ref1.room.dtag0.maxstorage> + <muldiv <ref1.room.dtag0.maxstorage>,<dlocal.increasedstorage>,100>
 else
-	local.max_lockdowns = <room.dtag0.maxlockdowns>
-	local.max_secured = <room.dtag0.maxsecured>
-	local.max_storage = <room.dtag0.maxstorage>
+	local.max_lockdowns = <ref1.room.dtag0.maxlockdowns>
+	local.max_secured = <ref1.room.dtag0.maxsecured>
+	local.max_storage = <ref1.room.dtag0.maxstorage>
 endif
 
 f_house_dialog 470,40,330,460
 dorigin 480 40
 dhtmlgump - *20 120 20 0 0 <def.bfont_hs_text2>SIGN
-dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_title><ref1> <def.bfont_size1><def.bfont_hs_gray>(<name>)
+dhtmlgump +136 - 260 20 0 0 <def.bfont_hs_title><ref1> <def.bfont_size1><def.bfont_hs_gray>(<ref1.name>)
 dhtmlgump - *20 120 20 0 0 <def.bfont_hs_text1>Room tag sign
 dhtmlgump +136 - 260 20 0 0 <qval <ref1.room.htag.sign>==<ref1>?<def.bfont_hs_title>:<def.bfont_hs_red>><ref1.room.htag.sign>
 dhtmlgump - *20 120 20 0 0 <def.bfont_hs_text1>Room Name
