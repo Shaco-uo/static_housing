@@ -1,15 +1,16 @@
 [ITEMDEF i_static_hs_catalogue]
 DEFNAME=i_static_hs_catalogue
-ID=i_book_lg
-TYPE=t_normal
-FLIP=0
+ID=02d4d
 NAME=Static Building Catalogue
+TYPE=t_normal
+FLIP=1
 VALUE=20
 WEIGHT=1.0
+DUPELIST=02d4e
+ON=@Create
+	attr=010
 ON=@DClick
-	if (<topcont>!=<src.findlayer.21>)
-		src.sysmessage @,,1 The item must be on your backpack.
-	else
+	if (<distance> < 3)
 		src.ctag.menu_page=
 		src.ctag.menu_val=
 		src.f_static_allsigns_list
