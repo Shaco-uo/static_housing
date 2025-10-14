@@ -19,19 +19,19 @@ ON=@DClick
 
 [DIALOG d_static_hs_catalogue]
 50,50
-local.count=<serv.list.temp_<src>.count>
+local.count=<eval <serv.list.temp_<src>.count>-1>
 if !<local.count>
 	return 1
 endif
 if <isempty <src.ctag.menu_page>>
 	ctag.menu_page=1
-	ctag.menu_val=0 9
+	ctag.menu_val=1 10
 endif
 page 0
 call fd_static_hs_catalogue_bg
 dorigin 150 138
 for <src.ctag0.menu_val>
-	if <dlocal._for> < <dlocal.count>
+	if <dlocal._for> <= <dlocal.count>
 		ref1=<serv.list.temp_<src>.<dlocal._for>>
 		local.maxstorage=<ref1.room.dtag0.maxstorage>
 		dhtmlgump - *20 200 20 0 0 <def.bfont_hs_text1><ref1.room.name>
@@ -54,7 +54,7 @@ endfor
 
 [DIALOG d_static_hs_catalogue button]
 on=0
-on=100 5000
+on=101 5000
 	local.opt=<eval <argn1>-100>
 	ref1=<serv.list.temp_<src>.<dlocal.opt>>
 	if !(<ref1.tag.forsale_new> || <ref1.tag.forsale>)
@@ -70,7 +70,7 @@ on=100 5000
 	sdialog d_static_hs_catalogue
 
 on=5001 5002
-	local.count=<serv.list.temp_<src>.count>
+	local.count=<eval <serv.list.temp_<src>.count>-1>
 	local.page_max=<eval ((<dlocal.count>-1)/10)+1>
 	if <dargn1>==5001 // back
 		src.ctag0.menu_page --
@@ -116,12 +116,13 @@ dhtmlgump *20 *1 240 20 0 0 <def.bfont_hs_text3>Bank Balance <def.bfont_hs_text2
 dhtmlgump +460 - 240 20 0 0 <def.bfont_hs_text3>Page <src.dctag0.menu_page>/<dlocal.page_max>
 if <dlocal.count> > 10
 	button 246 106 9910 9909 1 0 5001	// back
-	button 476 106 9904 9903 1 0 5002	// next
+	button 479 106 9904 9903 1 0 5002	// next
 endif
 
 [FUNCTION f_static_allsigns_list]
 ref1=<uid>
 serv.list.temp_<ref1>.clear
+serv.list.temp_<ref1>.add=1 // not really used
 if !(<ref1.isevent.e_temp_list>)
 	ref1.events=+e_temp_list
 endif
