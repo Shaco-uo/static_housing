@@ -37,8 +37,8 @@ for <src.ctag0.menu_val>
 	elif (<ref1.tag.forsale>)
 		ref2=<serv.list.static_hs_<ref1>.0> // owner
 		button -34 - 4005 4007 1 0 <eval <dlocal._for>+100>
-		dhtmlgump +274 +3 46 20 0 0 <def.center><def.bfont_hs_text2><f_numformat <ref1.room.dtag0.price>>
-		tooltip <ddef0.empty_cliloc>,Sold by <ref2.f_hs_noto_bfontcolor><ref2.name><def.bfont_white>
+		dhtmlgump +274 +3 46 20 0 0 <def.center><def.bfont_hs_text2><f_numformat <ref1.dtag0.price>>
+		tooltip <ddef0.empty_cliloc>,@Sold by <ref2.f_hs_noto_bfontcolor><ref2.name><def.bfont_white>
 	else
 		gumppic -34 - 4020 0
 		tooltip <ddef0.empty_cliloc>,@Sold

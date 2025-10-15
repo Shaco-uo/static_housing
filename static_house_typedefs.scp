@@ -333,7 +333,7 @@ On=@Enter
 	if <src.isplayer>
 		src.events +e_static_house_events
 		src.dspeech +spk_static_cmds
-		ref1=<tag.sign> // room tag sign
+		ref1=<tag0.sign> // room tag sign
 		ref3=<serv.list.static_hs_<ref1>.0>	// owner
 		local.housetype=<serv.list.static_hs_<ref1>.2>
 		if (<src.isgm>)
