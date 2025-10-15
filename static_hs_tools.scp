@@ -28,23 +28,25 @@ page 0
 call fd_static_hs_catalogue_bg
 dorigin 150 138
 for <src.ctag0.menu_val>
-	ref1=<serv.list.temp_<src>.<dlocal._for>>
-	local.maxstorage=<ref1.room.dtag0.maxstorage>
-	dhtmlgump - *20 200 20 0 0 <def.bfont_hs_text1><ref1.room.name>
-	if (<ref1.tag.forsale_new>)
-		button -34 - 4005 4007 1 0 <eval <dlocal._for>+100>
-		dhtmlgump +274 +3 46 20 0 0 <def.center><def.bfont_hs_text1><f_numformat <ref1.room.dtag0.value>>
-	elif (<ref1.tag.forsale>)
-		ref2=<serv.list.static_hs_<ref1>.0> // owner
-		button -34 - 4005 4007 1 0 <eval <dlocal._for>+100>
-		dhtmlgump +274 +3 46 20 0 0 <def.center><def.bfont_hs_text2><f_numformat <ref1.dtag0.price>>
-		tooltip <ddef0.empty_cliloc>,@Sold by <ref2.f_hs_noto_bfontcolor><ref2.name><def.bfont_white>
-	else
-		gumppic -34 - 4020 0
-		tooltip <ddef0.empty_cliloc>,@Sold
+	if <dlocal._for> <= <dlocal.count>
+		ref1=<serv.list.temp_<src>.<dlocal._for>>
+		local.maxstorage=<ref1.room.dtag0.maxstorage>
+		dhtmlgump - *20 200 20 0 0 <def.bfont_hs_text1><ref1.room.name>
+		if (<ref1.tag.forsale_new>)
+			button -34 - 4005 4007 1 0 <eval <dlocal._for>+100>
+			dhtmlgump +274 +3 46 20 0 0 <def.center><def.bfont_hs_text1><f_numformat <ref1.room.dtag0.value>>
+		elif (<ref1.tag.forsale>)
+			ref2=<serv.list.static_hs_<ref1>.0> // owner
+			button -34 - 4005 4007 1 0 <eval <dlocal._for>+100>
+			dhtmlgump +274 +3 46 20 0 0 <def.center><def.bfont_hs_text2><f_numformat <ref1.dtag0.price>>
+			tooltip <ddef0.empty_cliloc>,@Sold by <ref2.f_hs_noto_bfontcolor><ref2.name><def.bfont_white>
+		else
+			gumppic -34 - 4020 0
+			tooltip <ddef0.empty_cliloc>,@Sold
+		endif
+		dhtmlgump +212 +3 46 20 0 0 <def.center><def.bfont_hs_text3><f_numformat <dlocal.maxstorage>>
+		dhtmlgump +350 +3 140 20 0 0 <def.bfont_hs_text3><ref1.region.name>
 	endif
-	dhtmlgump +212 +3 46 20 0 0 <def.center><def.bfont_hs_text3><f_numformat <dlocal.maxstorage>>
-	dhtmlgump +350 +3 140 20 0 0 <def.bfont_hs_text3><ref1.region.name>
 endfor
 
 [DIALOG d_static_hs_catalogue button]
