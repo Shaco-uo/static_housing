@@ -42,6 +42,7 @@ for <src.ctag0.menu_val>
 			tooltip <ddef0.empty_cliloc>,@Sold by <ref2.f_hs_noto_bfontcolor><ref2.name><def.bfont_white>
 		else
 			gumppic -34 - 4020 0
+			dhtmlgump +274 +3 46 20 0 0 <def.center><def.bfont_hs_text1>Private
 			tooltip <ddef0.empty_cliloc>,@Sold
 		endif
 		dhtmlgump +212 +3 46 20 0 0 <def.center><def.bfont_hs_text3><f_numformat <dlocal.maxstorage>>

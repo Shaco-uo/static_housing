@@ -121,6 +121,7 @@ ref1.tag.buildon=
 ref1.tag.forsale=
 ref1.tag.price=
 ref1.tag.decay_exempt=
+ref1.tag.boughtstorage=
 ref1.resendtooltip 1,0
 
 [FUNCTION f_static_remove_spawns]
