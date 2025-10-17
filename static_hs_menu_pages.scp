@@ -323,28 +323,33 @@ if (<src.isgm>)
 endif
 
 
-
-
 [FUNCTION fd_static_house_menu_20] // CHANGE SIGN DISPID
 dhtmlgump 118 225 350 20 0 0 <def.bfont_hs_title><def.bfont_size7><def.center>Change Sign
 button 118 224 9910 9909 1 0 20004 // back/customize
 if <ref1.baseid>==i_sign_static_house
 	local.sign=2979
+	local.sign2=2965
+	local.sign3=3139
 else
 	local.sign=2980
+	local.sign2=2966
+	local.sign3=3140
 endif
 local.y=270
 dorigin 126 <dlocal.y>
 for 1 54
-buttontileart *36 - 07588 07588 1 0 <dlocal.sign> <dlocal.sign> 0 -10 -5
-local.c ++
-local.sign +=2
-if <local.c>==8
-	local.c=
-	local.y += 30
-	dorigin 126 <dlocal.y>
-endif
+	buttontileart *36 - 07588 07588 1 0 <dlocal.sign> <dlocal.sign> 0 -10 -5
+	local.c ++
+	local.sign +=2
+	if <local.c>==8
+		local.c=
+		local.y += 30
+		dorigin 126 <dlocal.y>
+	endif
 endfor
+buttontileart *36 - 07588 07588 1 0 <dlocal.sign2> <dlocal.sign2> 0 -10 -5
+buttontileart *36 - 07588 07588 1 0 <dlocal.sign3> <dlocal.sign3> 0 -10 -5
+
 
 [FUNCTION fd_static_house_menu_21] // SIGN COLOR
 dorigin 118 225
