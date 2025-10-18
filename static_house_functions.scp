@@ -6,6 +6,25 @@ hs_static_remove_spawns	1 // 0=disabled. on buy, remove any spawn on room.
 empty_cliloc			1065706 // ~1_NOTHING~
 
 
+[FUNCTION f_sign_gethanger] // look for  hanger
+targetf _sign_gethanger
+
+[FUNCTION _sign_gethanger]
+ref1=<argo> // sign
+ref1.f_static_hs_gethanger
+
+[FUNCTION f_static_hs_gethanger]
+ref1=<uid> // sign
+foritems 0
+if !(<attr>&010)
+elif !(<ref1.dispiddec> >= 2967 && <dispiddec> <= 2974)
+else
+	ref1.sayu Hanger Set!
+	ref1.tag.sign_hanger=<uid>
+endif
+endfor
+
+
 [FUNCTION static_house_total]
 local.hs=<tag0.static_houses>
 // local.hs=<serv.list.chardata_<uid>.11> // custom
@@ -414,26 +433,6 @@ else
 		src.sysmessage @33,,1 Invalid Target.
 	endif
 endif
-
-
-[FUNCTION f_sign_gethanger]
-targetf _sign_gethanger
-
-[FUNCTION _sign_gethanger]
-ref1=<argo> // sign
-ref1.f_static_hs_gethanger
-
-[FUNCTION f_static_hs_gethanger]
-ref1=<uid> // sign
-foritems 0
-if !(<attr>&010)
-elif !(<ref1.dispiddec> >= 2967 && <dispiddec> <= 2974)
-else
-	ref1.sayu Hanger Set!
-	ref1.tag.sign_hanger=<uid>
-endif
-endfor
-
 
 
 [FUNCTION f_static_hs_smsg]
