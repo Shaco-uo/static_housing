@@ -35,19 +35,19 @@ for <src.ctag0.menu_val>
 		dhtmlgump - *20 200 20 0 0 <def.bfont_hs_text1><ref1.room.name>
 		if (<ref1.tag0.forsale_new>)
 			button -34 - 4005 4007 1 0 <eval <dlocal._for>+100>
-			dhtmlgump +270 +3 54 20 0 0 <def.center><def.bfont_hs_text1><def.bfont_size1><f_numformat <ref1.room.dtag0.value>>
+			dhtmlgump +266 +3 68 20 0 0 <def.center><def.bfont_hs_text1><def.bfont_size1><f_numformat <ref1.room.dtag0.value>>
 		elif (<ref1.tag0.forsale>)
 			ref2=<serv.list.static_hs_<ref1>.0> // owner
 			button -34 - 4005 4007 1 0 <eval <dlocal._for>+100>
-			dhtmlgump +270 +3 54 20 0 0 <def.center><def.bfont_hs_text2><def.bfont_size1><f_numformat <ref1.dtag0.price>>
+			dhtmlgump +266 +3 68 20 0 0 <def.center><def.bfont_hs_text2><def.bfont_size1><f_numformat <ref1.dtag0.price>>
 			tooltip <ddef0.empty_cliloc>,@Sold by <ref2.f_hs_noto_bfontcolor><ref2.name><def.bfont_white>
 		else
 			gumppic -34 - 4020 0
-			dhtmlgump +274 +3 46 20 0 0 <def.center><def.bfont_hs_text1><def.bfont_size1>Private
+			dhtmlgump +266 +3 68 20 0 0 <def.center><def.bfont_hs_text1><def.bfont_size1>Private
 			tooltip <ddef0.empty_cliloc>,@Sold
 		endif
-		dhtmlgump +212 +3 46 20 0 0 <def.center><def.bfont_hs_text3><def.bfont_size1><f_numformat <dlocal.maxstorage>>
-		dhtmlgump +350 +3 140 20 0 0 <def.bfont_hs_text3><def.bfont_size1><ref1.region.name>
+		dhtmlgump +210 +3 46 20 0 0 <def.center><def.bfont_hs_text3><def.bfont_size1><f_numformat <dlocal.maxstorage>>
+		dhtmlgump +356 +3 140 20 0 0 <def.bfont_hs_text3><def.bfont_size1><ref1.region.name>
 	endif
 endfor
 
@@ -105,6 +105,24 @@ on=5101 5104
 	endif
 	sdialog d_static_hs_catalogue
 
+on=5105 5108
+	src.ctag.menu_page=1
+	src.ctag.menu_val=1 10
+	if <dargn1>==5105
+		src.f_static_allsigns_namelist
+		f_reverse_list temp_<src>
+	elif <dargn1>==5106
+		src.f_static_allsigns_storagelist
+		f_reverse_list temp_<src>
+	elif <dargn1>==5107
+		src.f_static_allsigns_pricelist
+		f_reverse_list temp_<src>
+	else // 5108
+		src.f_static_allsigns_regionlist
+		f_reverse_list temp_<src>
+	endif
+	sdialog d_static_hs_catalogue
+
 
 
 [EVENTS e_temp_list]
@@ -133,13 +151,18 @@ dhtmlgump - +1 540 20 0 0 <def.bfont_hs_yellow><def.center>STATIC BUILDINGS [<dl
 gumppictiled - *24 540 20 2624
 checkertrans - - 540 20
 dhtmlgump *54 *1 120 20 0 0 <def.bfont_hs_title>Property Name
-button -10 +2 2437 2438 1 0 5101
-dhtmlgump *204 - 120 20 0 0 <def.bfont_hs_title>Storage
-button -10 +2 2437 2438 1 0 5102
-dhtmlgump *70 - 120 20 0 0 <def.bfont_hs_title>Cost
-button -10 +2 2437 2438 1 0 5103
-dhtmlgump *70 - 120 20 0 0 <def.bfont_hs_title>Region
-button -10 +2 2437 2438 1 0 5104
+button -12 +4 2437 2438 1 0 5105
+button +92 +4 2435 2436 1 0 5102
+dhtmlgump *200 - 120 20 0 0 <def.bfont_hs_title>Storage
+button -12 +4 2437 2438 1 0 5106
+button +48 +4 2435 2436 1 0 5102
+dhtmlgump *76 - 120 20 0 0 <def.bfont_hs_title>Cost
+button -12 +4 2437 2438 1 0 5107
+button +30 +4 2435 2436 1 0 5103
+dhtmlgump *76 - 120 20 0 0 <def.bfont_hs_title>Region
+button -12 +4 2437 2438 1 0 5108
+button +39 +4 2435 2436 1 0 5104
+
 dorigin 104 154
 gumppictiled - - 540 210 2624
 checkertrans - - 540 210
@@ -250,6 +273,20 @@ for 0 <eval <serv.list.<local.list>.count>-1>
 		endif
 	endfor
 endfor
+
+/// Reverses any list (turns descending → ascending)
+[FUNCTION f_reverse_list]
+local.src=<args> // name of source list
+local.dest=<local.src>_rev // destination list (or choose your own name)
+for <eval <serv.list.<local.src>.count>-1> 0
+	serv.list.<local.dest>.add <serv.list.<local.src>.<dlocal._for>>
+endfor
+serv.list.<local.src>.clear
+for 0 <eval <serv.list.<local.dest>.count>-1>
+	serv.list.<local.src>.add <serv.list.<local.dest>.<dlocal._for>>
+endfor
+serv.list.<local.dest>.clear
+
 
 
 [EOF]
