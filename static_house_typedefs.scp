@@ -245,8 +245,8 @@ On=@Destroy
 // 	f_static_msg_access
 
 On=@Clienttooltip
-	if <istevent.t_item_tooltip> // custom tooltip event
-	else
+	// if <istevent.t_item_tooltip> // custom tooltip event
+	// else
 		local.f_tooltip = Locked Down & Secure
 		if (<tag0.access>==<def.house_access_owner>)
 			local.f_tooltip .= <def.br>Access <def.bfont_lyellow>Owner Only<def.bfont_white>
@@ -262,7 +262,7 @@ On=@Clienttooltip
 			endif
 		endif
 		ADDCLILOC <ddef0.empty_cliloc>,<local.f_tooltip>
-	endif
+	// endif
 
 On=@ContextMenuRequest
 	ref1=<room.tag0.sign>

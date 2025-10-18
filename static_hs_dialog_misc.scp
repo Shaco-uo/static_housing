@@ -177,13 +177,12 @@ elif (<ref1.tag0.forsale_new>)
 else
 	return 1
 endif
-
-f_house_dialog 0,106,410,166
-dorigin 252 124
+f_house_dialog 100,106,410,166
+dorigin 352 124
 gumppic - - 100 // brass sign gump
 dhtmlgump +18 +16 106 20 0 0 <def.center><def.bfont_size4><def.h3>FOR SALE
 dhtmlgump +18 *34 106 60 0 0 <def.center><def.bfont_hs_text1><def.bfont_size4><ref1.room.name><def.br><def.bfont_hs_gray><def.bfont_size1><ref1.region.name>
-dorigin 20 106
+dorigin 120 106
 dhtmlgump - *20 180 20 0 0 <def.bfont_hs_text3>Property Value
 dhtmlgump +148 - 180 20 0 0 <def.bfont_hs_text2><f_numformat <dlocal.gold>><def.bfont_hs_text1> gp
 dhtmlgump - *20 180 20 0 0 <def.bfont_hs_text3>Maximum Lockdowns
@@ -215,45 +214,9 @@ endif
 ON=0
 	return 1
 ON=1 // buy from server
-	ref1=<src.ctag0.hs_sign> //sign
-	if !<src.isgm>
-		local.gold=<qval <ref1.tag0.forsale>?<ref1.dtag0.price>:<ref1.room.dtag0.value>>
-		if <src.gold> < <dlocal.gold>
-			src.sysmessage @,,1 You don't have enough gold to buy this property.
-			sdialog d_static_forsale
-			return 1
-		elif <src.static_house_total> > <ddef0.hs_static_amount_max>
-			src.sysmessage 33,,1 You cannot have more properties (Max <ddef0.hs_static_amount_max>).
-			sdialog d_static_forsale
-			return 1
-		endif
-		src.gold -= <dlocal.gold>
-	endif
-	src.f_addlist_static_house <ref1> // list stuff
-	src.f_add_static_house <ref1> // add to house count
-	ref1.name=<ref1.room.name>
-	ref1.tag.forsale_new=
-	ref1.tag.buildon=<serv.rtime>
-	ref1.room.events=+r_static_house_system
-	ref1.room.flags=region_flag_nodecay|region_antimagic_recall_in|region_flag_insta_logout
-	if <def.hs_can_decay>
-		ref1.timer=60*60*24*<ddef0.hs_can_decay>
-	else
-		ref1.timer=-1
-	endif
-	ref1.f_static_recode_access
-	ref1.resendtooltip 1,0
-	if (<src.room> && <src.room.defname>==<ref1.room.defname>)
-		if !(<src.isevent.e_static_house_events>)
-			src.events=+e_static_house_events
-			src.dspeech=+spk_static_cmds
-		endif
-	endif
-	if <local.gold>
-		src.sysmessage @70,,1 You are the new owner of <ref1.name>, bought for <f_numformat <dlocal.gold>> gp.
-	endif
-	src.sysmessage @,,1 The number of static houses you own is <src.static_house_total>.
+	ref1=<src.ctag0.hs_sign>
 	src.ctag.hs_menu=1
+	src.f_static_hs_server_buy <ref1>
 	src.f_resenddialog d_static_house_menu
 
 on=2 // buy from player
@@ -261,7 +224,6 @@ on=2 // buy from player
 	src.ctag.hs_menu=1
 	src.f_static_hs_player_buy <ref1>
 	src.f_resenddialog d_static_house_menu
-
 
 // ***********************************
 // ***********************************

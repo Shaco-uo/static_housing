@@ -238,6 +238,7 @@ else
 endif
 ref2.f_addlist_static_house <ref1> // list stuff
 ref2.f_add_static_house <ref1> // add to house count
+ref1.f_static_hs_gethanger
 ref1.name=<ref1.room.name>
 ref1.tag.forsale_new=
 ref1.tag.buildon=<serv.rtime>
@@ -414,41 +415,25 @@ else
 	endif
 endif
 
-[FUNCTION fix_signs]
-forinstances i_sign_static_house
-if <istevent.t_static_house_sign>
-	if <tag0.forsale>
-		tag.forsale=
-		tag.forsale_new=1
-	endif
-endif
-endfor
-forinstances i_sign_static_house2
-if <istevent.t_static_house_sign>
-	if <tag0.forsale>
-		tag.forsale=
-		tag.forsale_new=1
-	endif
-endif
-endfor
 
 [FUNCTION f_sign_gethanger]
 targetf _sign_gethanger
 
 [FUNCTION _sign_gethanger]
 ref1=<argo> // sign
-ref1.sign_gethanger
+ref1.f_static_hs_gethanger
 
-[FUNCTION sign_gethanger]
+[FUNCTION f_static_hs_gethanger]
 ref1=<uid> // sign
 foritems 0
 if !(<attr>&010)
 elif !(<ref1.dispiddec> >= 2967 && <dispiddec> <= 2974)
 else
-	ref1.tag.sign_hanger=<uid>
 	ref1.sayu Hanger Set!
+	ref1.tag.sign_hanger=<uid>
 endif
 endfor
+
 
 
 [FUNCTION f_static_hs_smsg]
