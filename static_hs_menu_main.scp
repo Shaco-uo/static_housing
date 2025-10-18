@@ -500,6 +500,10 @@ on=6005 // property Removal
 	endif
 	ref1.tag.forsale_new=1
 	ref1.f_static_reset_sign
+	if <src.room.defname>==<ref1.room.defname>
+		src.events=-e_static_house_events
+		src.dspeech=-spk_static_cmds
+	endif
 	src.sysmessage @,,1 The number of static houses you own is <src.static_house_total>.
 	src.ctag.hs_sign=
 	src.ctag.hs_menu=
