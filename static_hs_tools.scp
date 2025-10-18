@@ -13,7 +13,7 @@ ON=@DClick
 	if (<distance> < 3)
 		src.ctag.menu_page=1
 		src.ctag.menu_val=1 10
-		src.f_static_allsigns_list
+		src.f_static_allsigns_namelist
 		src.f_resenddialog d_static_hs_catalogue
 	endif
 	return 1
@@ -29,24 +29,25 @@ call fd_static_hs_catalogue_bg
 dorigin 150 138
 for <src.ctag0.menu_val>
 	if <dlocal._for> <= <dlocal.count>
-		ref1=<serv.list.temp_<src>.<dlocal._for>>
+		args=<serv.list.temp_<src>.<dlocal._for>>
+		ref1=<argv[1]>
 		local.maxstorage=<ref1.room.dtag0.maxstorage>
 		dhtmlgump - *20 200 20 0 0 <def.bfont_hs_text1><ref1.room.name>
-		if (<ref1.tag.forsale_new>)
+		if (<ref1.tag0.forsale_new>)
 			button -34 - 4005 4007 1 0 <eval <dlocal._for>+100>
-			dhtmlgump +274 +3 46 20 0 0 <def.center><def.bfont_hs_text1><f_numformat <ref1.room.dtag0.value>>
-		elif (<ref1.tag.forsale>)
+			dhtmlgump +270 +3 54 20 0 0 <def.center><def.bfont_hs_text1><def.bfont_size1><f_numformat <ref1.room.dtag0.value>>
+		elif (<ref1.tag0.forsale>)
 			ref2=<serv.list.static_hs_<ref1>.0> // owner
 			button -34 - 4005 4007 1 0 <eval <dlocal._for>+100>
-			dhtmlgump +274 +3 46 20 0 0 <def.center><def.bfont_hs_text2><f_numformat <ref1.dtag0.price>>
+			dhtmlgump +270 +3 54 20 0 0 <def.center><def.bfont_hs_text2><def.bfont_size1><f_numformat <ref1.dtag0.price>>
 			tooltip <ddef0.empty_cliloc>,@Sold by <ref2.f_hs_noto_bfontcolor><ref2.name><def.bfont_white>
 		else
 			gumppic -34 - 4020 0
-			dhtmlgump +274 +3 46 20 0 0 <def.center><def.bfont_hs_text1>Private
+			dhtmlgump +274 +3 46 20 0 0 <def.center><def.bfont_hs_text1><def.bfont_size1>Private
 			tooltip <ddef0.empty_cliloc>,@Sold
 		endif
-		dhtmlgump +212 +3 46 20 0 0 <def.center><def.bfont_hs_text3><f_numformat <dlocal.maxstorage>>
-		dhtmlgump +350 +3 140 20 0 0 <def.bfont_hs_text3><ref1.region.name>
+		dhtmlgump +212 +3 46 20 0 0 <def.center><def.bfont_hs_text3><def.bfont_size1><f_numformat <dlocal.maxstorage>>
+		dhtmlgump +350 +3 140 20 0 0 <def.bfont_hs_text3><def.bfont_size1><ref1.region.name>
 	endif
 endfor
 
@@ -54,7 +55,8 @@ endfor
 on=0
 on=101 5000
 	local.opt=<eval <argn1>-100>
-	ref1=<serv.list.temp_<src>.<dlocal.opt>>
+	args=<serv.list.temp_<src>.<dlocal._for>>
+	ref1=<argv[1]>
 	if !(<ref1.tag.forsale_new> || <ref1.tag.forsale>)
 		src.sysmessage @,,1 <ref1.name> is no longer on the market.
 	else
@@ -89,46 +91,21 @@ on=5001 5002
 	src.ctag.menu_val=<dlocal.x> <dlocal.y>
 	sdialog d_static_hs_catalogue
 
+on=5101 5104
+	src.ctag.menu_page=1
+	src.ctag.menu_val=1 10
+	if <dargn1>==5101
+		src.f_static_allsigns_namelist
+	elif <dargn1>==5102
+		src.f_static_allsigns_storagelist
+	elif <dargn1>==5103
+		src.f_static_allsigns_pricelist
+	else // 5104
+		src.f_static_allsigns_regionlist
+	endif
+	sdialog d_static_hs_catalogue
 
-[FUNCTION fd_static_hs_catalogue_bg]
-local.page_max=<eval ((<dlocal.count>-1)/10)+1>
-dorigin 100 100
-resizepic - - 5054 551 292
-gumppictiled *4 *6 540 20 2624
-checkertrans - - 540 20
-button +522 +2 22150 22152 1 0 0
-dhtmlgump - +1 540 20 0 0 <def.bfont_hs_yellow><def.center>STATIC BUILDINGS [<dlocal.count>]
-gumppictiled - *24 540 20 2624
-checkertrans - - 540 20
-dhtmlgump *54 *1 120 20 0 0 <def.bfont_hs_title>Property Name
-dhtmlgump *204 - 120 20 0 0 <def.bfont_hs_title>Storage
-dhtmlgump *70 - 120 20 0 0 <def.bfont_hs_title>Cost
-dhtmlgump *70 - 120 20 0 0 <def.bfont_hs_title>Region
-dorigin 104 154
-gumppictiled - - 540 210 2624
-checkertrans - - 540 210
-gumppictiled - *214 540 20 2624
-checkertrans - - 540 20
-dhtmlgump *20 *1 240 20 0 0 <def.bfont_hs_text3>Total Gold <def.bfont_hs_text2><f_numformat <src.gold>> <def.bfont_hs_text3>gp
-dhtmlgump +456 - 240 20 0 0 <def.bfont_hs_text3>Page <src.dctag0.menu_page>/<dlocal.page_max>
-if <dlocal.count> > 10
-	button 246 106 9910 9909 1 0 5001	// back
-	button 479 106 9904 9903 1 0 5002	// next
-endif
 
-[FUNCTION f_static_allsigns_list]
-ref1=<uid>
-serv.list.temp_<ref1>.clear
-serv.list.temp_<ref1>.add=1 // not really used
-if !(<ref1.isevent.e_temp_list>)
-	ref1.events=+e_temp_list
-endif
-forinstances i_sign_static_house
-	serv.list.temp_<ref1>.add=<uid>
-endfor
-forinstances i_sign_static_house2
-	serv.list.temp_<ref1>.add=<uid>
-endfor
 
 [EVENTS e_temp_list]
 ON=@Logout
@@ -145,5 +122,134 @@ ON=@Destroy
 	serv.list.temp_<uid>.clear
 
 
-[EOF]
+[FUNCTION fd_static_hs_catalogue_bg]
+local.page_max=<eval ((<dlocal.count>-1)/10)+1>
+dorigin 100 100
+resizepic - - 5054 551 292
+gumppictiled *4 *6 540 20 2624
+checkertrans - - 540 20
+button +522 +2 22150 22152 1 0 0
+dhtmlgump - +1 540 20 0 0 <def.bfont_hs_yellow><def.center>STATIC BUILDINGS [<dlocal.count>]
+gumppictiled - *24 540 20 2624
+checkertrans - - 540 20
+dhtmlgump *54 *1 120 20 0 0 <def.bfont_hs_title>Property Name
+button -10 +2 2437 2438 1 0 5101
+dhtmlgump *204 - 120 20 0 0 <def.bfont_hs_title>Storage
+button -10 +2 2437 2438 1 0 5102
+dhtmlgump *70 - 120 20 0 0 <def.bfont_hs_title>Cost
+button -10 +2 2437 2438 1 0 5103
+dhtmlgump *70 - 120 20 0 0 <def.bfont_hs_title>Region
+button -10 +2 2437 2438 1 0 5104
+dorigin 104 154
+gumppictiled - - 540 210 2624
+checkertrans - - 540 210
+gumppictiled - *214 540 20 2624
+checkertrans - - 540 20
+dhtmlgump *20 *1 240 20 0 0 <def.bfont_hs_text3>Total Gold <def.bfont_hs_text2><f_numformat <src.gold>> <def.bfont_hs_text3>gp
+dhtmlgump +456 - 240 20 0 0 <def.bfont_hs_text3>Page <src.dctag0.menu_page>/<dlocal.page_max>
+if <dlocal.count> > 10
+	button 246 106 9910 9909 1 0 5001	// back
+	button 479 106 9904 9903 1 0 5002	// next
+endif
 
+
+
+
+[FUNCTION f_static_allsigns_namelist]
+ref1=<uid> // player
+serv.list.temp_<ref1>.clear
+serv.list.temp_<ref1>.add=1,<ref1> // not really used
+if !(<ref1.isevent.e_temp_list>)
+	ref1.events=+e_temp_list
+endif
+forinstances i_sign_static_house
+	ref2=<uid>
+	serv.list.temp_<ref1>.add="<ref2.room.name>,<ref2>"
+endfor
+forinstances i_sign_static_house2
+	ref2=<uid>
+	serv.list.temp_<ref1>.add="<ref2.room.name>,<ref2>"
+endfor
+serv.list.temp_<ref1>.sort asc
+
+[FUNCTION f_static_allsigns_storagelist]
+ref1=<uid> // player
+serv.list.temp_<ref1>.clear
+serv.list.temp_<ref1>.add=1,<ref1> // not really used
+if !(<ref1.isevent.e_temp_list>)
+	ref1.events=+e_temp_list
+endif
+forinstances i_sign_static_house
+	ref2=<uid>
+	serv.list.temp_<ref1>.add="<fval <ref2.room.tag0.maxstorage>*10>,<ref2>"
+endfor
+forinstances i_sign_static_house2
+	ref2=<uid>
+	serv.list.temp_<ref1>.add="<fval <ref2.room.tag0.maxstorage>*10>,<ref2>"
+endfor
+f_sort_list_0_desc temp_<ref1>
+
+
+[FUNCTION f_static_allsigns_pricelist]
+ref1=<uid> // player
+serv.list.temp_<ref1>.clear
+serv.list.temp_<ref1>.add=1,<ref1> // not really used
+if !(<ref1.isevent.e_temp_list>)
+	ref1.events=+e_temp_list
+endif
+forinstances i_sign_static_house
+	ref2=<uid>
+	if (<ref2.tag0.forsale>)
+		local.price=<ref2.dtag0.price>
+	else
+		local.price=<ref2.room.dtag0.value>
+	endif
+	serv.list.temp_<ref1>.add="<dlocal.price>,<ref2>"
+endfor
+forinstances i_sign_static_house2
+	ref2=<uid>
+	if (<ref2.tag0.forsale>)
+		local.price=<ref2.dtag0.price>
+	else
+		local.price=<ref2.room.dtag0.value>
+	endif
+	serv.list.temp_<ref1>.add="<dlocal.price>,<ref2>"
+endfor
+f_sort_list_0_desc temp_<ref1>
+
+
+[FUNCTION f_static_allsigns_regionlist]
+ref1=<uid> // player
+serv.list.temp_<ref1>.clear
+serv.list.temp_<ref1>.add=1,<ref1> // not really used
+if !(<ref1.isevent.e_temp_list>)
+	ref1.events=+e_temp_list
+endif
+forinstances i_sign_static_house
+	ref2=<uid>
+	serv.list.temp_<ref1>.add="<ref2.region.name>,<ref2>"
+endfor
+forinstances i_sign_static_house2
+	ref2=<uid>
+	serv.list.temp_<ref1>.add="<ref2.region.name>,<ref2>"
+endfor
+serv.list.temp_<ref1>.sort asc
+
+
+
+[FUNCTION f_sort_list_0_desc] // uses <argv[0]> for sorting
+local.list=<args>
+for 0 <eval <serv.list.<local.list>.count>-1>
+	for 0 <eval (<serv.list.<local.list>.count>-1)-<dlocal._for>>
+		local.n1=<strarg <serv.list.<local.list>.<dlocal._for>>>
+		local.n2=<strarg <serv.list.<local.list>.<eval <dlocal._for>+1>>>
+		if <dlocal.n1> < <dlocal.n2>
+			local.temp=<serv.list.<local.list>.<dlocal._for>>
+			serv.list.<local.list>.<dlocal._for>=<serv.list.<local.list>.<eval <dlocal._for>+1>>
+			serv.list.<local.list>.<eval <dlocal._for>+1>=<local.temp>
+		endif
+	endfor
+endfor
+
+
+[EOF]
