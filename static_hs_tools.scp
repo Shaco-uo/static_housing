@@ -91,7 +91,7 @@ on=5001 5002
 	src.ctag.menu_val=<dlocal.x> <dlocal.y>
 	sdialog d_static_hs_catalogue
 
-on=5101 5104
+on=5101 5104 // sort desc
 	src.ctag.menu_page=1
 	src.ctag.menu_val=1 10
 	if <dargn1>==5101
@@ -105,22 +105,19 @@ on=5101 5104
 	endif
 	sdialog d_static_hs_catalogue
 
-on=5105 5108
+on=5105 5108 // sort asc
 	src.ctag.menu_page=1
 	src.ctag.menu_val=1 10
 	if <dargn1>==5105
 		src.f_static_allsigns_namelist
-		f_reverse_list temp_<src>
 	elif <dargn1>==5106
 		src.f_static_allsigns_storagelist
-		f_reverse_list temp_<src>
 	elif <dargn1>==5107
 		src.f_static_allsigns_pricelist
-		f_reverse_list temp_<src>
 	else // 5108
 		src.f_static_allsigns_regionlist
-		f_reverse_list temp_<src>
 	endif
+	f_reverse_list temp_<src>
 	sdialog d_static_hs_catalogue
 
 
@@ -171,8 +168,8 @@ checkertrans - - 540 20
 dhtmlgump *20 *1 240 20 0 0 <def.bfont_hs_text3>Total Gold <def.bfont_hs_text2><f_numformat <src.gold>> <def.bfont_hs_text3>gp
 dhtmlgump +456 - 240 20 0 0 <def.bfont_hs_text3>Page <src.dctag0.menu_page>/<dlocal.page_max>
 if <dlocal.count> > 10
-	button 246 106 9910 9909 1 0 5001	// back
-	button 479 106 9904 9903 1 0 5002	// next
+	button 246 108 5603 5607 1 0 5001	// back // 9910 9909
+	button 479 108 5601 5605 1 0 5002	// next // 9904 9903
 endif
 
 
