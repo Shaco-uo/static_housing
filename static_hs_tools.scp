@@ -201,11 +201,11 @@ if !(<ref1.isevent.e_temp_list>)
 endif
 forinstances i_sign_static_house
 	ref2=<uid>
-	serv.list.temp_<ref1>.add="<fval <ref2.room.tag0.maxstorage>*10>,<ref2>"
+	serv.list.temp_<ref1>.add="<ref2.room.dtag0.maxstorage>,<ref2>"
 endfor
 forinstances i_sign_static_house2
 	ref2=<uid>
-	serv.list.temp_<ref1>.add="<fval <ref2.room.tag0.maxstorage>*10>,<ref2>"
+	serv.list.temp_<ref1>.add="<ref2.room.dtag0.maxstorage>,<ref2>"
 endfor
 f_sort_list_0_desc temp_<ref1>
 
