@@ -55,9 +55,9 @@ endfor
 on=0
 on=101 5000
 	local.opt=<eval <argn1>-100>
-	args=<serv.list.temp_<src>.<dlocal._for>>
+	args=<serv.list.temp_<src>.<dlocal.opt>>
 	ref1=<argv[1]>
-	if !(<ref1.tag.forsale_new> || <ref1.tag.forsale>)
+	if !(<ref1.tag0.forsale_new> || <ref1.tag0.forsale>)
 		src.sysmessage @,,1 <ref1.name> is no longer on the market.
 	else
 		src.sysmessage @1151,,1 Tracking <ref1.room.name> in <ref1.region.name> [<ref1.p>].
