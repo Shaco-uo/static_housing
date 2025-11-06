@@ -356,14 +356,17 @@ ON=4200 4399 // REMOVE FROM LIST
 
 ON=4400 // LIST CLEAR
 	ref1=<src.ctag0.hs_sign> // sign
-	if !(<src.is_static_owner <ref1>> || <src.isgm>)
-		sdialog d_static_house_menu
-		return 1
-	endif
 	local.list=<src.ctag0.list>
-	serv.list.static_hs_<ref1>_<local.list>.clear
-	src.sysmessage @42,,1 The <local.list> list has been cleared.
-	src.ctag.hs_menu=2
+	if (<src.is_static_owner <ref1>> || <src.isgm>)
+		local.clear=1
+	elif (<src.f_static_iscoowner <ref1>>) && ((strmatch(*friends*,<local.list>)) || (strmatch(*access*,<local.list>)) ||(strmatch(*ban*,<local.list>)))
+		local.clear=1
+	endif
+	if (<local.clear>)
+		serv.list.static_hs_<ref1>_<local.list>.clear
+		src.sysmessage @42,,1 The <local.list> list has been cleared.
+		src.ctag.hs_menu=2
+	endif
 	sdialog d_static_house_menu
 
 // **********************************
