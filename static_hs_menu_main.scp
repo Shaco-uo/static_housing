@@ -12,9 +12,9 @@ elif (<src.f_static_isfriend <ref1>>)
 	local.friend=1
 endif
 if (<local.housetype>==<def.house_guild>)
-	ref5=<ref2.tag0.is_guild>
+	ref5=<ref1.tag0.is_guild>
 	if <ref5.isvalid>
-		local.guild_name=<qval <ref5.abbrev>?<def.bfont_size1><ref5.name>:[<ref5.abbrev>]>
+		local.guild_name=<qval <isempty <ref5.abbrev>>?<def.bfont_size1><ref5.name>:[<ref5.abbrev>]>
 		local.guild=1
 	endif
 endif
@@ -70,7 +70,7 @@ for 1 5
 endfor
 
 dorigin 107 508 // bottom buttons
-if (<local.owner>) || (<local.coowner>) || (<local.friend>)
+if (<local.owner>) || (<local.coowner>) // || (<local.friend>)
 	button - - 4005 4007 1 0 <QVAL (<local.housetype>==<def.house_private>)? 4023:4032>
 	dhtmlgump +32 - 150 20 0 0 <def.bfont_hs_text1><QVAL (<local.housetype>==<def.house_private>)?Grant Access:Banish>
 	button - *20 4005 4007 1 0 <QVAL (<local.housetype>==<def.house_private>)? 4021:4031>
@@ -108,11 +108,12 @@ ref1=<src.ctag0.hs_sign> // sign
 if !(<ref1.isvalid>)
 	return 1
 elif !(<src.room> && <src.room.defname>==<ref1.room.defname>)
-	if <ref1.distance <src>> > 3
+	if (<ref1.distance <src>> > 3)
 		src.sysmessage @,,1 You can't reach the sign.
 		return 1
 	endif
 endif
+
 
 [DIALOG d_static_house_menu button]
 ON=0
@@ -135,6 +136,10 @@ on=2
 
 ON=4100 // PRIVATE/PUBLIC TOGGLE
 	ref1=<src.ctag0.hs_sign> // sign
+	if !(<src.is_static_owner <ref1>> || <src.isgm>)
+		sdialog d_static_house_menu
+		return 1
+	endif
 	local.housetype=<serv.list.static_hs_<ref1>.2>
 	// if <ref1.region.defname>==a_custom_market // (custom)
 	// 	if (<local.housetype>!=<def.house_public>)
@@ -171,6 +176,10 @@ ON=4100 // PRIVATE/PUBLIC TOGGLE
 
 ON=4101 // GUILD HOUSE TOGGLE
 	ref1=<src.ctag0.hs_sign> // sign
+	if !(<src.is_static_owner <ref1>> || <src.isgm>)
+		sdialog d_static_house_menu
+		return 1
+	endif
 	local.housetype=<serv.list.static_hs_<ref1>.2>
 	// if <ref1.region.defname>==a_custom_market // (custom)
 	// 	if (<local.housetype>!=<def.house_public>)
@@ -191,20 +200,31 @@ ON=4101 // GUILD HOUSE TOGGLE
 	sdialog d_static_house_menu
 
 ON=4102 // RECODE DOORS
+	if !(<src.is_static_owner <ref1>> || <src.isgm>)
+		sdialog d_static_house_menu
+		return 1
+	endif
 	src.message @,,1 Target a secured item
 	src.targetf fd_static_secure
 
 ON=4103 // EJECT PLAYER
+	if !(<src.is_static_owner <ref1>> || <src.isgm>)
+		sdialog d_static_house_menu
+		return 1
+	endif
 	src.message @42,,1 Target player to eject
 	src.targetf f_static_eject
 
 // *****************************
 // Lists
-
 ON=4001 4004 // COOWNER LIST
 	ref1=<src.ctag0.hs_sign> // sign
 	local.count=<serv.list.static_hs_<ref1>_coowners.count>
 	if (<dargn1>==4002) // add coowner
+		if !(<src.is_static_owner <ref1>> || <src.isgm>)
+			sdialog d_static_house_menu
+			return 1
+		endif
 		src.message @,,1 Select Player to add as coowner
 		src.targetf f_static_add_list 1
 	elif <dlocal.count> < 1
@@ -213,9 +233,13 @@ ON=4001 4004 // COOWNER LIST
 	else
 		src.ctag.list=Coowners
 		if (<dargn1>==4001) // view coowner list
-			src.ctag.hs_menu=7
+			if (<src.is_static_owner <ref1>> || <src.f_static_iscoowner <ref1>> || <src.f_static_isfriend <ref1>> || <src.isgm>)
+				src.ctag.hs_menu=7
+			endif
 		elif (<dargn1>==4003) // remove coowner
-			src.ctag.hs_menu=17
+			if (<src.is_static_owner <ref1>> || <src.isgm>)
+				src.ctag.hs_menu=17
+			endif
 		elif (<dargn1>==4004) // clear coowner
 			src.ctag.hs_menu=27
 		endif
@@ -226,6 +250,10 @@ ON=4011 4014 // FRIENDS LIST
 	ref1=<src.ctag0.hs_sign>
 	local.count=<serv.list.static_hs_<ref1>_friends.count>
 	if (<dargn1>==4012) // add friend target
+		if !(<src.is_static_owner <ref1>> || <src.f_static_iscoowner <ref1>> || <src.isgm>)
+			sdialog d_static_house_menu
+			return 1
+		endif
 		src.message @,,1 Select Player to add as friend
 		src.targetf f_static_add_list 2
 	elif <dlocal.count> < 1
@@ -234,11 +262,17 @@ ON=4011 4014 // FRIENDS LIST
 	else
 		src.ctag.list=Friends
 		if (<dargn1>==4011) // view friends list
-			src.ctag.hs_menu=8
+			if (<src.is_static_owner <ref1>> || <src.f_static_iscoowner <ref1>> || <src.f_static_isfriend <ref1>> || <src.isgm>)
+				src.ctag.hs_menu=8
+			endif
 		elif (<dargn1>==4013) // remove friend
-			src.ctag.hs_menu=18
+			if (<src.is_static_owner <ref1>> || <src.f_static_iscoowner <ref1>> || <src.f_static_isfriend <ref1>> || <src.isgm>)
+				src.ctag.hs_menu=18
+			endif
 		elif (<dargn1>==4014) // clear friends
-			src.ctag.hs_menu=27
+			if (<src.is_static_owner <ref1>> || <src.f_static_iscoowner <ref1>> || <src.isgm>)
+				src.ctag.hs_menu=27
+			endif
 		endif
 		sdialog d_static_house_menu
 	endif
@@ -247,6 +281,10 @@ ON=4021 4023 // ACCESS LIST
 	ref1=<src.ctag0.hs_sign>
 	local.count=<serv.list.static_hs_<ref1>_access.count>
 	if (<dargn1>==4023) // grant access target
+		if !(<src.is_static_owner <ref1>> || <src.f_static_iscoowner <ref1>> || <src.isgm>)
+			sdialog d_static_house_menu
+			return 1
+		endif
 		src.message @,,1 Select Player to grant access
 		src.targetf f_static_add_list 4
 	elif <dlocal.count> < 1
@@ -255,15 +293,23 @@ ON=4021 4023 // ACCESS LIST
 	else
 		src.ctag.list=Access
 		if (<dargn1>==4021) // view access list
-			src.ctag.hs_menu=6
+			if (<src.is_static_owner <ref1>> || <src.f_static_iscoowner <ref1>> || <src.f_static_isfriend <ref1>> || <src.isgm>)
+				src.ctag.hs_menu=6
+			endif
 		elif (<dargn1>==4022) // clear access
-			src.ctag.hs_menu=27
+			if (<src.is_static_owner <ref1>> || <src.f_static_iscoowner <ref1>> || <src.isgm>)
+				src.ctag.hs_menu=27
+			endif
 		endif
 		sdialog d_static_house_menu
 	endif
 
 ON=4031 4033 // BAN LIST
 	ref1=<src.ctag0.hs_sign>
+	if !(<src.is_static_owner <ref1>> || <src.f_static_iscoowner <ref1>> || <src.isgm>)
+		sdialog d_static_house_menu
+		return 1
+	endif
 	local.count=<serv.list.static_hs_<ref1>_ban.count>
 	if (<dargn1>==4032) // add to ban target
 		src.message @42,,1 Select Player to banish
@@ -310,7 +356,10 @@ ON=4200 4399 // REMOVE FROM LIST
 
 ON=4400 // LIST CLEAR
 	ref1=<src.ctag0.hs_sign> // sign
-	ref2=<ref1.room.uid> // house
+	if !(<src.is_static_owner <ref1>> || <src.isgm>)
+		sdialog d_static_house_menu
+		return 1
+	endif
 	local.list=<src.ctag0.list>
 	serv.list.static_hs_<ref1>_<local.list>.clear
 	src.sysmessage @42,,1 The <local.list> list has been cleared.
@@ -324,6 +373,10 @@ ON=4400 // LIST CLEAR
 
 ON=8001 8004
 	ref1=<src.ctag0.hs_sign> // sign
+	if !(<src.is_static_owner <ref1>> || <src.isgm>)
+		sdialog d_static_house_menu
+		return 1
+	endif
 	if (<dargn1>==8001) // buy 25% storage
 		local.value = <eval <ref1.room.dtag0.value>/8>
 		f_static_hs_buy_storage <dlocal.value>
@@ -345,30 +398,26 @@ ON=8001 8004
 // CUSTOMIZE
 
 ON=7001 7003
-	if (<dargn1>==7001) // Change House Sign
+	ref1=<src.ctag0.hs_sign> // sign
+	if !(<src.is_static_owner <ref1>> || <src.isgm>)
+	elif (<dargn1>==7001) // Change House Sign
 		src.ctag.hs_menu=20
-		sdialog d_static_house_menu
 	elif (<dargn1>==7002) // Change House Sign Color
 		src.ctag.hs_menu=21
-		sdialog d_static_house_menu
 	elif (<dargn1>==7003) // Change House Sign Hanger
 		src.ctag.hs_menu=22
-		sdialog d_static_house_menu
+	elif (<dargn1>==7004) // reset sign dispid
+		ref1.color=0
+		src.sysmessage @,,1 The sign color has been reset.
+	elif (<dargn1>==7005) // toggle rename
+		src.ctag.hs_rename=1
 	endif
-
-ON=7004
-	ref1=<src.ctag0.hs_sign> // sign
-	ref1.color=0
-	src.sysmessage @,,1 The sign color has been reset.
-	sdialog d_static_house_menu
-
-ON=7005 // toggle rename
-	src.ctag.hs_rename=1
 	sdialog d_static_house_menu
 
 ON=7006 // rename property
 	ref1=<src.ctag0.hs_sign>
-	if (<isempty <argtxt[1]>>)
+	if !(<src.is_static_owner <ref1>> || <src.isgm>)
+	elif (<isempty <argtxt[1]>>)
 		src.sysmessage @33,,1 The name was empty.
 	elif (<isnum <argtxt[1]>>)
 		src.sysmessage @33,,1 That name is invalid (number).
@@ -389,7 +438,8 @@ ON=7006 // rename property
 
 ON=7100 7200 // sign coloring
 	ref1=<src.ctag0.hs_sign> // sign
-	if <def.hs_allow_sign_color>
+	if !(<src.is_static_owner <ref1>> || <src.isgm>)
+	elif <def.hs_allow_sign_color>
 		ref1.color=<def0.sign_color_<eval <argn1>-7100>>
 		src.sysmessage @,,1 The sign color has been updated.
 	endif
@@ -397,14 +447,17 @@ ON=7100 7200 // sign coloring
 
 ON=2965 3140	// sign dispid
 	ref1=<src.ctag0.hs_sign> // sign
-	ref1.dispid=<hval <argn1>>
-	ref1.update
-	src.sysmessage @,,1 The sign has been updated.
+	if (<src.is_static_owner <ref1>> || <src.isgm>)
+		ref1.dispid=<hval <argn1>>
+		ref1.update
+		src.sysmessage @,,1 The sign has been updated.
+	endif
 	sdialog d_static_house_menu
 
 ON=12967 12978 // sign hanger
 	ref1=<src.ctag0.hs_sign> // sign
-	if (<ref1.tag0.sign_hanger>)
+	if !(<src.is_static_owner <ref1>> || <src.isgm>)
+	elif (<ref1.tag0.sign_hanger>)
 		ref2=<ref1.tag0.sign_hanger>
 		if !(<ref2.tag0.old_dispid>)
 			ref2.tag.old_dispid=<ref2.dispid>
@@ -421,15 +474,23 @@ ON=12967 12978 // sign hanger
 // OWNERSHIP
 
 on=6001 // Pay Property Tax menu
-	src.ctag.hs_menu=30
+	if (<src.is_static_owner <ref1>> || <src.f_static_iscoowner <ref1>> || <src.isgm>)
+		src.ctag.hs_menu=30
+	endif
 	sdialog d_static_house_menu
 
 on=6002 // sell Property menu
-	src.ctag.hs_menu=31
+	if (<src.is_static_owner <ref1>> || <src.isgm>)
+		src.ctag.hs_menu=31
+	endif
 	sdialog d_static_house_menu
 
 on=6003 // sell Property
 	ref1=<src.ctag0.hs_sign> // sign
+	if !(<src.is_static_owner <ref1>> || <src.isgm>)
+		sdialog d_static_house_menu
+		return 1
+	endif
 	local.lockdowns=<serv.list.static_hs_<ref1>.3>
 	local.secured=<serv.list.static_hs_<ref1>.4>
 	local.increasedstorage = <serv.list.static_hs_<ref1>.5>
@@ -472,11 +533,17 @@ on=6003 // sell Property
 	sdialog d_static_house_menu
 
 on=6004 // property Removal menu
-	src.ctag.hs_menu=32
+	if (<src.is_static_owner <ref1>> || <src.isgm>)
+		src.ctag.hs_menu=32
+	endif
 	sdialog d_static_house_menu
 
 on=6005 // property Removal
 	ref1=<src.ctag0.hs_sign> // sign
+	if !(<src.is_static_owner <ref1>> || <src.isgm>)
+		sdialog d_static_house_menu
+		return 1
+	endif
 	local.housetype=<serv.list.static_hs_<ref1>.2>
 	if (<local.housetype>==<def.house_guild>)
 		src.sysmessage @33,,1 This is a guild house.
@@ -511,6 +578,10 @@ on=6005 // property Removal
 
 on=6010 // PAY TAX
 	ref1=<src.ctag0.hs_sign> // sign
+	if !(<src.is_static_owner <ref1>> || <src.f_static_iscoowner <ref1>> || <src.isgm>)
+		sdialog d_static_house_menu
+		return 1
+	endif
 	ref3=<serv.list.static_hs_<ref1>.0> // owner
 	local.h=<ref3.static_house_total>
 	local.daysleft = <eval(((<ref1.timer>/60)/60)/24)>
@@ -643,20 +714,18 @@ ON=6013 // remove decay exempt GM only
 ON=20001 20005 // HEADER BUTTONS
 	ref1=<src.ctag0.hs_sign> // sign
 	local.opt=<eval <argn1>-20000>
-	if <dlocal.opt> > 3
-		if (<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.f_static_isfriend <ref1>>)
+	if (<dlocal.opt> > 1)
+		if (<src.is_static_owner <ref1>> || <src.f_static_iscoowner <ref1>> || <src.f_static_isfriend <ref1>> || <src.isgm>)
 			src.ctag.hs_menu=<dlocal.opt>
 		endif
-	else
-		src.ctag.hs_menu=<dlocal.opt>
 	endif
 	sdialog d_static_house_menu
 
 ON=20006
-	src.ctag0.dlg_bg ++
-	if (<src.dctag0.dlg_bg>==<ddef0.dlg_bg_max>)
-		src.ctag.dlg_bg=
-	endif
+	// src.ctag0.dlg_bg ++
+	// if (<src.dctag0.dlg_bg>==<ddef0.dlg_bg_max>)
+	// 	src.ctag.dlg_bg=
+	// endif
 	sdialog d_static_house_menu
 
 [EOF]

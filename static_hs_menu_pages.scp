@@ -90,12 +90,14 @@ if (<local.owner>)
 	button -34 - 4005 4007 1 0 4003
 	dhtmlgump - *20 180 20 0 0 <def.bfont_hs_text1>Clear Co-Owner List
 	button -34 - 4005 4007 1 0 4004
+elif (<local.coowner>) || (<local.friend>)
+	dhtmlgump - - 180 20 0 0 <def.bfont_hs_text1>View Co-Owners List
+	button -34 - 4005 4007 1 0 4001 // View House Co-Owners
+	button -37 +100 4005 4007 1 0 4011 // View House Friends
+	dhtmlgump - *20 180 20 0 0 <def.bfont_hs_gray>Add Co-Owner
+	dhtmlgump - *20 180 20 0 0 <def.bfont_hs_gray>Remove Co-Owner
+	dhtmlgump - *20 180 20 0 0 <def.bfont_hs_gray>Clear Co-Owner List
 else
-	if (<local.coowner>) || (<local.friend>)
-		dhtmlgump - - 180 20 0 0 <def.bfont_hs_text1>View Co-Owners List
-		button -34 - 4005 4007 1 0 4001 // View House Co-Owners
-		button -37 +100 4005 4007 1 0 4011 // View House Friends
-	endif
 	dhtmlgump - - 180 20 0 0 <def.bfont_hs_gray>View Co-Owners List
 	dhtmlgump - *20 180 20 0 0 <def.bfont_hs_gray>Add Co-Owner
 	dhtmlgump - *20 180 20 0 0 <def.bfont_hs_gray>Remove Co-Owner
@@ -533,18 +535,18 @@ else
 endif
 
 
-
-
 [FUNCTION f_static_render_list]
 local.list=<argv[0]>
 local.count=<serv.list.static_hs_<ref1>_<local.list>.count>
 if <dlocal.count> < 1
 	local.count=0
 endif
-dhtmlgump 118 225 350 20 0 0 <def.bfont_hs_title><def.bfont_size7><def.center><local.list> List <dlocal.count>/<def0.hs_max_co_owners>
+dhtmlgump 118 225 350 20 0 0 <def.bfont_hs_title><def.bfont_size7><def.center><local.list> List <dlocal.count>/<def0.hs_static_max_<local.list>>
 button 118 224 9910 9909 1 0 20002 // back/security
-if !<local.count>
+if !(<local.count>)
 	dhtmlgump 188 250 220 20 0 0 <def.bfont_hs_red><def.bfont_size7><def.center>Empty
+elif !(<src.is_static_owner <ref1>> || <src.f_static_is<local.list> <ref1>> || <src.isgm>)
+	dhtmlgump 188 250 220 20 0 0 <def.bfont_hs_red><def.bfont_size7><def.center>You have no access to this property
 else
 	if (strmatch(*ban*,<local.list>))
 		local.frame=9677 // red
@@ -569,16 +571,15 @@ else
 		gumppictiled - +20 122 1 <dlocal.frame>
 		gumppictiled -1 - 1 21 <dlocal.frame>
 		gumppictiled +122 - 1 21 <dlocal.frame>
-		if ((<src.is_static_owner <ref1>>) || (<src.f_static_is<local.list> <ref1>>) || (<src.isgm>)) && ((strmatch(*coowners*,<local.list>)) || (strmatch(*friends*,<local.list>)))
-			if (<ref2>==<src.uid>) || (<src.is_static_owner <ref1>>) || (<src.isgm>)
-				if <argv[1]>
-					local.b=1
-					button +106 +2 22150 22152 1 0 <eval <dlocal._for>+4200> // remove
-				endif
-			endif
-		elif ((<src.is_static_owner <ref1>>) || (<src.f_static_iscoowner <ref1>>) || (<src.isgm>)) && ((strmatch(*friends*,<local.list>)) || (strmatch(*access*,<local.list>)) ||(strmatch(*ban*,<local.list>)))
-			if <argv[1]>
+		if (<argv[1]>) // remove
+			if (<ref2>==<src.uid>)
 				local.b=1
+			elif (<src.is_static_owner <ref1>> || <src.isgm>)
+				local.b=1
+			elif (<src.f_static_iscoowner <ref1>>) && ((strmatch(*friends*,<local.list>)) || (strmatch(*access*,<local.list>)) ||(strmatch(*ban*,<local.list>)))
+				local.b=1
+			endif
+			if (<local.b>)
 				button +106 +2 22150 22152 1 0 <eval <dlocal._for>+4200> // remove
 			endif
 		endif

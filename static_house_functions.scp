@@ -1,28 +1,16 @@
 [DEFNAME static_housing]
-hs_static_amount_max	1 // max static buildings per player
-hs_static_store_crate	1 // 0=disabled. on removal use crate to store stuff instead of destroy.
-hs_static_debug			1 // enable debug options (GM)
-hs_static_remove_spawns	1 // 0=disabled. on buy, remove any spawn on room.
+hs_static_amount_max		1 // max static buildings per player
+hs_static_store_crate		1 // 0=disabled. on removal use crate to store stuff instead of destroy.
+hs_static_debug				1 // enable debug options (GM)
+hs_static_remove_spawns		1 // 0=disabled. on buy, remove any spawn on room.
+
+hs_static_max_coowners		20 // max 30
+hs_static_max_friends		20 // max 30
+hs_static_max_access		10 // max 30
+hs_static_max_ban			30 // max 30
+
 empty_cliloc			1065706 // ~1_NOTHING~
 
-
-[FUNCTION f_sign_gethanger] // look for  hanger
-targetf _sign_gethanger
-
-[FUNCTION _sign_gethanger]
-ref1=<argo> // sign
-ref1.f_static_hs_gethanger
-
-[FUNCTION f_static_hs_gethanger]
-ref1=<uid> // sign
-foritems 0
-if !(<attr>&010)
-elif !(<ref1.dispiddec> >= 2967 && <dispiddec> <= 2974)
-else
-	ref1.sayu Hanger Set!
-	ref1.tag.sign_hanger=<uid>
-endif
-endfor
 
 
 [FUNCTION static_house_total]
@@ -647,32 +635,32 @@ if <ref2.isplayer>
 		src.sysmessage @33,,1 <ref2.name> already exists on the bans list, must be removed before adding <ref2.sex him/her> to another.
 	elif (<dlocal.opt>==1)
 		local.count=<serv.list.static_hs_<ref1>_coowners.count>
-		if (<dlocal.count> < <ddef0.hs_max_co_owners>)
+		if (<dlocal.count> < <ddef0.hs_static_max_coowners>)
 			serv.list.static_hs_<ref1>_coowners.add <ref2>
 			src.sysmessage @1151,,1 <ref2.name> has been added as a Co-Owner for this property.
 			ref2.sysmessage @1151,,1 You have been made a Co-Owner for this property.
 		else
-			src.sysmessage @33,,1 You already have the maximum number of Co-Owners permitted for this property. (<ddef0.hs_max_co_owners>)
+			src.sysmessage @33,,1 You already have the maximum number of Co-Owners permitted for this property. (<ddef0.hs_static_max_coowners>)
 			src.sysmessage @33,,1 Remove someone from the list and try again.
 		endif
 	elif (<dlocal.opt>==2)
 		local.count=<serv.list.static_hs_<ref1>_friends.count>
-		if (<dlocal.count> <= <ddef0.hs_max_friends>)
+		if (<dlocal.count> <= <ddef0.hs_static_max_friends>)
 			serv.list.static_hs_<ref1>_friends.add <ref2>
 			src.sysmessage @1151,,1 <ref2.name> has been added as a Friend for this property.
 			ref2.sysmessage @1151,,1 You have been made a Friend for this property.
 		else
-			src.sysmessage @33,,1 You already have the maximum number of Friends permitted for this property. (<ddef0.hs_max_friends>)
+			src.sysmessage @33,,1 You already have the maximum number of Friends permitted for this property. (<ddef0.hs_static_max_friends>)
 			src.sysmessage @33,,1 Remove someone from the list and try again.
 		endif
 	elif (<dlocal.opt>==3)
 		local.count=<serv.list.static_hs_<ref1>_ban.count>
-		if (<dlocal.count> <= <ddef.hs_max_ban>)
+		if (<dlocal.count> <= <ddef0.hs_static_max_ban>)
 			serv.list.static_hs_<ref1>_ban.add <ref2>
 			src.sysmessage @33,,1 <ref2.name> has been banned from the property.
 			if (<ref2.room> && <ref2.room.defname>==<ref1.room.defname>)
 				ref2.trysrc <ref2> sysmessage @33,,1 You have been banned from this property.
-				if !<isempty <ref1.room.tag0.exit>>
+				if !(<isempty <ref1.room.tag0.exit>>)
 					ref2.go=<ref1.room.tag0.exit>
 				else
 					ref2.go=<ref1.p>
@@ -684,7 +672,7 @@ if <ref2.isplayer>
 		endif
 	elif (<dlocal.opt>==4)
 		local.count=<serv.list.static_hs_<ref1>_access.count>
-		if (<dlocal.count> <= <ddef.hs_max_access>)
+		if (<dlocal.count> <= <ddef0.hs_static_max_access>)
 			serv.list.static_hs_<ref1>_access.add <ref2>
 			src.sysmessage @1151,,1 <ref2.name> has been granted access to the property.
 			ref2.sysmessage @1151,,1 You have been granted access to the property.
@@ -982,5 +970,24 @@ elseif (<notogetflag <ref1>>==1)
 else
 	return <def.bfont_gray>	// gray
 endif
+
+
+[FUNCTION f_sign_gethanger] // look for  hanger
+targetf _sign_gethanger
+
+[FUNCTION _sign_gethanger]
+ref1=<argo> // sign
+ref1.f_static_hs_gethanger
+
+[FUNCTION f_static_hs_gethanger]
+ref1=<uid> // sign
+foritems 0
+if !(<attr>&010)
+elif !(<ref1.dispiddec> >= 2967 && <dispiddec> <= 2974)
+else
+	ref1.sayu Hanger Set!
+	ref1.tag.sign_hanger=<uid>
+endif
+endfor
 
 [EOF]
