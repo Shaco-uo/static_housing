@@ -359,7 +359,7 @@ ON=4400 // LIST CLEAR
 	local.list=<src.ctag0.list>
 	if (<src.is_static_owner <ref1>> || <src.isgm>)
 		local.clear=1
-	elif (<src.f_static_iscoowner <ref1>>) && ((strmatch(*friends*,<local.list>)) || (strmatch(*access*,<local.list>)) ||(strmatch(*ban*,<local.list>)))
+	elif (<src.f_static_iscoowner <ref1>>) && ((strmatch(*friends*,<local.list>)) || (strmatch(*access*,<local.list>)) || (strmatch(*ban*,<local.list>)))
 		local.clear=1
 	endif
 	if (<local.clear>)
